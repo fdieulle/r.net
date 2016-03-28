@@ -1,0 +1,11 @@
+LIBRARY RDotNet.RHostClr.dll
+EXPORTS
+rStartClr
+rShutdownClr
+rRestartAppDomain
+rLoadAssembly
+rCallStaticMethod
+rCreateObject
+rCall
+rGet
+rSet

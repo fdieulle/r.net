@@ -1,0 +1,21 @@
+#!/bin/sh
+
+SRC_DIR=./visualstudio
+if [ ! -e ${SRC_DIR} ]
+then
+	echo "error: no suitable package visualstudio folder found - last tried ${SRC_DIR}"
+	CURDIR=`pwd`
+	echo "Current directory (pwd) is $CURDIR"
+	exit 1
+fi
+
+#./cleanup.win
+
+# Get VS_COMNTOOLS
+BUILD_VS_PROJECT_CMD=`echo ${SRC_DIR}/build.cmd | sed -e 's/\//\\\\/g'`
+cmd /c $BUILD_VS_PROJECT_CMD
+
+# Generate roxygen2 NAMESPACE documentation
+Rscript -e 'library(devtools); setwd(path.expand(".")); devtools::document()'
+
+exit 0

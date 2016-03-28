@@ -1,0 +1,25 @@
+Package: r.net
+Type: Package
+Title: Interoperability between R and .Net environment
+Version: 0.1
+Date: 2016-03-24
+Author@R: c(person("Fabien", "Dieulle", role = c("aut", "cre"), email =
+    "fabien.dieulle@gmail.com"))
+Author: Fabien Dieulle [aut, cre]
+Maintainer: Fabien Dieulle <fabien.dieulle@gmail.com>
+Description: This package allow to interop R and .Net environment.
+    A .Net Clr is running when the package is loaded.
+VignetteBuilder: knitr
+Suggests:
+    testthat,
+    knitr,
+    xtable
+URL: http://github/rnet
+BugReports: http://codeplex.com/rnet
+License: LGPL-3
+Depends:
+    R (>= 3.2.2),
+    methods
+Imports:
+    methods
+RoxygenNote: 5.0.1
