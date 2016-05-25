@@ -584,5 +584,19 @@ namespace RDotNet.AssemblyTest
         }
 
         #endregion
+
+        #region Custom methods
+
+        public static void OptionalArguments(string[] arg1, int[] arg2 = null, bool arg3 = true)
+        {
+            Console.WriteLine("{0} arg1: {1}, arg2: {2}, arg3: {3}", MethodBase.GetCurrentMethod(), arg1, arg2, arg3);
+        }
+
+        public static void NullValueFromR(string[] arg1, object arg2, bool arg3)
+        {
+            Console.WriteLine("{0} arg1: {1}, arg2: {2}, arg3: {3}", MethodBase.GetCurrentMethod(), arg1, arg2, arg3);
+        }
+
+        #endregion
     }
 }

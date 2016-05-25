@@ -90,6 +90,7 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
 
         private void SetupFromRConverters()
         {
+            SetupFromRConverter(SymbolicExpressionType.Null, p => NullConverter.Instance);
             SetupFromRConverter(SymbolicExpressionType.CharacterVector, ConvertFromCharacterVector);
             SetupFromRConverter(SymbolicExpressionType.IntegerVector, ConvertFromIntegerVector);
             SetupFromRConverter(SymbolicExpressionType.LogicalVector, ConvertFromLogicalVector);

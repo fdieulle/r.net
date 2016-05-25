@@ -60,6 +60,32 @@ namespace RDotNet.ClrProxyTests
         }
 
         [Test]
+        public void TestTryGetCustomMethods()
+        {
+            var type = typeof(StaticClass);
+            const BindingFlags flags = BindingFlags.Public | BindingFlags.Static;
+            
+            MethodInfo method;
+            var methodName = "OptionalArguments";
+
+            var types = new[] { C(typeof(string), typeof(string[])), C(typeof(int), typeof(int[])), C(typeof(bool)) };
+            Assert.IsTrue(type.TryGetMethod(methodName, flags, types, out method));
+            Assert.AreEqual(method, type.GetMethod(methodName, flags, null, T(typeof(string[]), typeof(int[]), typeof(bool)), null));
+
+            types = new[] { C(typeof(string), typeof(string[])), C(NullConverter.Types), C(typeof(bool)) };
+            Assert.IsTrue(type.TryGetMethod(methodName, flags, types, out method));
+            Assert.AreEqual(method, type.GetMethod(methodName, flags, null, T(typeof(string[]), typeof(int[]), typeof(bool)), null));
+
+            methodName = "NullValueFromR";
+
+            types = new[] { C(NullConverter.Types), C(NullConverter.Types), C(NullConverter.Types) };
+            Assert.IsTrue(type.TryGetMethod(methodName, flags, types, out method));
+            Assert.AreEqual(method, type.GetMethod(methodName, flags, null, T(typeof(string[]), typeof(object), typeof(bool)), null));
+
+            method.Invoke(null, new object[] {null, null, null});
+        }
+
+        [Test]
         public void TestTryGetMethodWithEnumArgument()
         {
             var type = typeof(StaticClass);

@@ -267,7 +267,7 @@ namespace RDotNet.ClrProxy
                 var score = 0;
                 for (var j = 0; j < converters.Length; j++)
                 {
-                    var parameterType = parameters[i].ParameterType;
+                    var parameterType = parameters[j].ParameterType;
                     var types = converters[j].GetClrTypes();
 
                     var found = false;
@@ -294,6 +294,10 @@ namespace RDotNet.ClrProxy
                         found = true;
                     }
                     #endregion
+
+                    // Manage null value from R
+                    if (types == NullConverter.Types)
+                        found = true;
 
                     if (found) continue;
 

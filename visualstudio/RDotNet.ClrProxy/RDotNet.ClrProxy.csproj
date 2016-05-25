@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClrProxy.cs" />
+    <Compile Include="Converters\NullConverter.cs" />
     <Compile Include="Converters\RDotNet\SexpCharacterVectorConverter.cs" />
     <Compile Include="Converters\RDotNet\SexpDifftimeVectorConverter.cs" />
     <Compile Include="Converters\RDotNet\SexpDifftimeMatrixConverter.cs" />
