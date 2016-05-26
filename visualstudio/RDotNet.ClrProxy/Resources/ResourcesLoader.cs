@@ -12,8 +12,8 @@ namespace RDotNet.ClrProxy.Resources
         static ResourcesLoader()
         {
             LoadOlsonWindowsMapping();
-            utcOlsonTimezone = new[] { TimeZoneInfo.Utc.GetOlsonTimezone() };
-            localOlsonTimezon = new[] { TimeZoneInfo.Local.GetOlsonTimezone() };
+            UtcOlsonTimezone = new[] { TimeZoneInfo.Utc.GetOlsonTimezone() };
+            LocalOlsonTimezon = new[] { TimeZoneInfo.Local.GetOlsonTimezone() };
         }
 
         #region Timezones
@@ -34,7 +34,9 @@ namespace RDotNet.ClrProxy.Resources
             {
                 if (olsonWindowsMapping[i].Type == null) continue;
 
-                var timezone = windowsTz[olsonWindowsMapping[i].Other];
+                TimeZoneInfo timezone;
+                if (!windowsTz.TryGetValue(olsonWindowsMapping[i].Other, out timezone))
+                    continue;
 
                 var type = olsonWindowsMapping[i].Type;
                 if (string.Equals("001", olsonWindowsMapping[i].Territory))
@@ -127,14 +129,17 @@ namespace RDotNet.ClrProxy.Resources
             return "UTC";
         }
 
-        private static readonly DateTime origin = new DateTime(1970, 01, 01, 0, 0, 0, 0, DateTimeKind.Utc);
+        public static readonly DateTime Origin = new DateTime(1970, 01, 01, 0, 0, 0, 0, DateTimeKind.Utc);
+        public static readonly string[] UtcOlsonTimezone;
+        public static readonly string[] LocalOlsonTimezon;
+
         public static DateTime[] FromTick(this double[] ticks, TimeZoneInfo timezone)
         {
             var length = ticks.Length;
             var result = new DateTime[length];
             for (var i = 0; i < length; i++)
             {
-                result[i] = TimeZoneInfo.ConvertTime(origin.AddSeconds(ticks[i]), timezone);
+                result[i] = TimeZoneInfo.ConvertTime(Origin.AddSeconds(ticks[i]), timezone);
             }
             return result;
         }
@@ -148,20 +153,17 @@ namespace RDotNet.ClrProxy.Resources
             for (var i = 0; i < nrow; i++)
             {
                 for (var j = 0; j < ncol; j++)
-                    result[i, j] = TimeZoneInfo.ConvertTime(origin.AddSeconds(ticks[i, j]), timezone);
+                    result[i, j] = TimeZoneInfo.ConvertTime(Origin.AddSeconds(ticks[i, j]), timezone);
             }
             return result;
         }
 
-        private static readonly string[] utcOlsonTimezone;
-        private static readonly string[] localOlsonTimezon;
-
         public static double ToTicks(this DateTime dateTime, out string[] tzone)
         {
             tzone = dateTime.Kind == DateTimeKind.Utc
-                ? utcOlsonTimezone
-                : localOlsonTimezon;
-            return (dateTime.ToUniversalTime() - origin).TotalSeconds;
+                ? UtcOlsonTimezone
+                : LocalOlsonTimezon;
+            return (dateTime.ToUniversalTime() - Origin).TotalSeconds;
         }
 
         public static double[] ToTicks(this DateTime[] array, out string[] tzone)
@@ -170,11 +172,11 @@ namespace RDotNet.ClrProxy.Resources
             var result = new double[length];
 
             tzone = length > 0 && array[0].Kind == DateTimeKind.Utc
-                ? utcOlsonTimezone
-                : localOlsonTimezon;
+                ? UtcOlsonTimezone
+                : LocalOlsonTimezon;
 
             for (var i = 0; i < length; i++)
-                result[i] = (array[i].ToUniversalTime() - origin).TotalSeconds;
+                result[i] = (array[i].ToUniversalTime() - Origin).TotalSeconds;
 
             return result;
         }
@@ -186,13 +188,13 @@ namespace RDotNet.ClrProxy.Resources
             var result = new double[nrow,ncol];
 
             tzone = nrow > 0 && ncol > 0 && matrix[0, 0].Kind == DateTimeKind.Utc
-                ? utcOlsonTimezone
-                : localOlsonTimezon;
+                ? UtcOlsonTimezone
+                : LocalOlsonTimezon;
 
             for (var i = 0; i < nrow; i++)
             {
                 for (var j = 0; j < ncol; j++)
-                    result[i, j] = (matrix[i, j] - origin).TotalSeconds;
+                    result[i, j] = (matrix[i, j] - Origin).TotalSeconds;
             }
 
             return result;

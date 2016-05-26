@@ -109,7 +109,7 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
             return sexp.AddPosixctAttributes(tzone);
         }
 
-        private static SymbolicExpression AddPosixctAttributes(this SymbolicExpression sexp, IEnumerable<string> tzone)
+        public static SymbolicExpression AddPosixctAttributes(this SymbolicExpression sexp, IEnumerable<string> tzone)
         {
             sexp.SetAttribute("class", sexp.Engine.CreateCharacterVector(new[] { "POSIXct", "POSIXt" }));
             sexp.SetAttribute("tzone", sexp.Engine.CreateCharacterVector(tzone));
@@ -179,7 +179,7 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
             return sexp.AddDifftimeAttributes();
         }
 
-        private static SymbolicExpression AddDifftimeAttributes(this SymbolicExpression sexp, string units = SECS)
+        public static SymbolicExpression AddDifftimeAttributes(this SymbolicExpression sexp, string units = SECS)
         {
             sexp.SetAttribute("class", sexp.Engine.CreateCharacterVector(new[] { "difftime" }));
             sexp.SetAttribute("units", sexp.Engine.CreateCharacterVector(new[] { units }));
