@@ -22,6 +22,11 @@ rNetPackageName <- 'RDotNet.RHostClr'
   dyn.load(nativeLib)
   
   .C("rStartClr", rNetLibsDirs, PACKAGE = rNetPackageName)
+  
+  dlls <- list.files(rNetLibsDirs, pattern = "*.dll", full.names = TRUE)
+  for(dll in dlls) {
+	netLoadAssembly(dll)
+  }
 }
 
 

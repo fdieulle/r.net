@@ -10,8 +10,17 @@ namespace RDotNet.ClrProxy
 {
     public class ClrProxy
     {
-        // Todo found a better way to create it and allow to enrich it or change it
-        private static readonly IDataConverter dataConverter = RDotNetDataConverter.Instance;
+        #region Mange Data converter
+
+        private static IDataConverter dataConverter = RDotNetDataConverter.Instance;
+
+        public static IDataConverter DataConverter
+        {
+            get { return dataConverter; }
+            set { dataConverter = value ?? RDotNetDataConverter.Instance; }
+        }
+
+        #endregion
 
         public static Assembly LoadAssembly(string pathOrAssemblyName)
         {
@@ -20,7 +29,16 @@ namespace RDotNet.ClrProxy
 
             var filePath = pathOrAssemblyName.Replace("/", "\\");
             if (File.Exists(filePath))
+            {
+                var assemblyName = new FileInfo(filePath).Name;
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    if (string.Equals(assembly.ManifestModule.Name, assemblyName))
+                        return assembly;
+                }
+
                 return Assembly.LoadFrom(filePath);
+            }
 
             if (pathOrAssemblyName.IsFullyQualifiedAssemblyName())
                 return Assembly.Load(pathOrAssemblyName);
