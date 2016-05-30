@@ -267,7 +267,7 @@ namespace RDotNet.ClrProxy
                 var score = 0;
                 for (var j = 0; j < converters.Length; j++)
                 {
-                    var parameterType = parameters[j].ParameterType;
+                    var parameterType = parameters[j].ParameterType.Extract();
                     var types = converters[j].GetClrTypes();
 
                     var found = false;
@@ -325,7 +325,7 @@ namespace RDotNet.ClrProxy
             var parameters = method.GetParameters();
 
             for (var i = 0; i < length; i++)
-                args[i] = converters[i].Convert(parameters[i].ParameterType);
+                args[i] = converters[i].Convert(parameters[i].ParameterType.Extract());
 
             return method.Invoke(instance, args);
         }
@@ -337,7 +337,7 @@ namespace RDotNet.ClrProxy
             var parameters = ctor.GetParameters();
 
             for (var i = 0; i < length; i++)
-                args[i] = converters[i].Convert(parameters[i].ParameterType);
+                args[i] = converters[i].Convert(parameters[i].ParameterType.Extract());
 
             return ctor.Invoke(args);
         }
@@ -345,6 +345,13 @@ namespace RDotNet.ClrProxy
         public static bool IsEnumArray(this Type type)
         {
             return type.IsArray && type.GetElementType().IsEnum;
+        }
+
+        public static Type Extract(this Type type)
+        {
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof (Nullable<>))
+                return type.GetGenericArguments()[0];
+            return type;
         }
     }
 }
