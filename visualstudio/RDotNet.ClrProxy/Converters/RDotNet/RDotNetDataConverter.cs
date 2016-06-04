@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using RDotNet.ClrProxy.Loggers;
 using RDotNet.Internals;
 
 namespace RDotNet.ClrProxy.Converters.RDotNet
@@ -7,7 +8,9 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
     public class RDotNetDataConverter : IDataConverter
     {
         #region Singleton
-        
+
+        private static readonly ILogger logger = Logger.Instance;
+
         private static readonly RDotNetDataConverter instance = new RDotNetDataConverter();
         public static RDotNetDataConverter Instance { get { return instance; } }
 
@@ -38,6 +41,8 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
         public IConverter GetConverter(long address)
         {
             var sexp = engine.CreateFromNativeSexp(new IntPtr(address));
+
+            logger.DebugFormat("SEXP type: {0}", sexp.Type);
 
             Func<SymbolicExpression, IConverter> factory;
             if (converterFactories.TryGetValue(sexp.Type, out factory))
@@ -103,6 +108,13 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
             SymbolicExpressionType type,
             Func<SymbolicExpression, IConverter> createConverter)
         {
+            if (logger.IsDebugEnabled)
+            {
+                logger.DebugFormat(
+                    converterFactories.ContainsKey(type)
+                        ? "Override converter R -> C#, Type: {0}"
+                        : "Setup converter R -> C#, Type: {0}", type);
+            }
             converterFactories[type] = createConverter;
         }
 
@@ -231,6 +243,14 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
 
         public void SetupToRConverter(Type type, Func<object, SymbolicExpression> converter)
         {
+            if (logger.IsDebugEnabled)
+            {
+                logger.DebugFormat(
+                    convertersBack.ContainsKey(type)
+                        ? "Override converter C# -> R, Type: {0}"
+                        : "Setup converter C# -> R, Type: {0}", type);
+            }
+
             convertersBack[type] = converter;
         }
 

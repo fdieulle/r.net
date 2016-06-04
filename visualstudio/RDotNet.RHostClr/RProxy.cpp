@@ -48,6 +48,81 @@ SEXP rCallStaticMethod(SEXP p) {
 	return convertToSEXP(result);
 }
 
+SEXP rGetStatic(SEXP p) {
+
+	// 1 - Get data from SEXP
+	p = CDR(p); // Skip the first parameter: because function name
+	char* strTypeName = readStringFromSexp(p); p = CDR(p);
+	char* strPropertyName = readStringFromSexp(p); p = CDR(p);
+
+	// 2 - Prepare arguments to call proxy
+	SAFEARRAY* args = SafeArrayCreateVector(VT_VARIANT, 0, 2);
+	long i = 0;
+
+	// 2.1 - Type name
+	variant_t typeName(strTypeName);
+	SafeArrayPutElement(args, &i, &typeName); i++;
+
+	// 2.2 - Method name
+	variant_t propertyName(strPropertyName);
+	SafeArrayPutElement(args, &i, &propertyName); i++;
+
+	// 3 - Call the proxy
+	CLR_OBJ result;
+	char* errorMsg;
+	HRESULT hr = callProxy(L"GetStaticProperty", args, &result, &errorMsg);
+	
+	if(FAILED(hr)) {
+		error(errorMsg);
+		free(errorMsg);
+		return R_NilValue;
+	}
+
+	// 4 - Free memory
+	SafeArrayDestroy(args);
+
+	return convertToSEXP(result);
+}
+
+SEXP rSetStatic(SEXP p) {
+	
+	// 1 - Get data from SEXP
+	p = CDR(p); // Skip the first parameter: because function name
+	char* strTypeName = readStringFromSexp(p); p = CDR(p);
+	char* strPropertyName = readStringFromSexp(p); p = CDR(p);
+	LONGLONG valueAddresse = (LONGLONG)CAR(p);
+
+	// 2 - Prepare arguments to call proxy
+	SAFEARRAY* args = SafeArrayCreateVector(VT_VARIANT, 0, 3);
+	long i = 0;
+
+	// 2.1 - Type name
+	variant_t typeName(strTypeName);
+	SafeArrayPutElement(args, &i, &typeName); i++;
+
+	// 2.2 - Method name
+	variant_t propertyName(strPropertyName);
+	SafeArrayPutElement(args, &i, &propertyName); i++;
+
+	// 2.3 property value
+	variant_t value(valueAddresse);
+	SafeArrayPutElement(args, &i, &value); i++;
+
+	// 3 - Call the proxy
+	CLR_OBJ result;
+	char* errorMsg;
+	HRESULT hr = callProxy(L"SetStaticProperty", args, &result, &errorMsg);
+
+	if(FAILED(hr)) {
+		error(errorMsg);
+		free(errorMsg);
+		return R_NilValue;
+	}
+
+	SafeArrayDestroy(args);
+	return R_NilValue;
+}
+
 SEXP rCreateObject(SEXP p) {
 
 	// 1 - Get data from SEXP

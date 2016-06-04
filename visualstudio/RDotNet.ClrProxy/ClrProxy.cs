@@ -1,15 +1,16 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
 using RDotNet.ClrProxy.Converters;
 using RDotNet.ClrProxy.Converters.RDotNet;
+using RDotNet.ClrProxy.Loggers;
 
 namespace RDotNet.ClrProxy
 {
     public class ClrProxy
     {
+        private static readonly ILogger logger = Logger.Instance;
+
         #region Mange Data converter
 
         private static IDataConverter dataConverter = RDotNetDataConverter.Instance;
@@ -24,6 +25,8 @@ namespace RDotNet.ClrProxy
 
         public static Assembly LoadAssembly(string pathOrAssemblyName)
         {
+            logger.DebugFormat("[LoadAssembly] Path or AssemblyName: {0}", pathOrAssemblyName);
+
             if (string.IsNullOrEmpty(pathOrAssemblyName))
                 return null;
 
@@ -43,22 +46,23 @@ namespace RDotNet.ClrProxy
             if (pathOrAssemblyName.IsFullyQualifiedAssemblyName())
                 return Assembly.Load(pathOrAssemblyName);
 
-            Console.WriteLine("Unable to load assembly: {0}", pathOrAssemblyName);
+            logger.ErrorFormat("Unable to load assembly: {0}", pathOrAssemblyName);
             return null;
         }
 
         public static object CallStaticMethod(string typeName, string methodName, long[] argumentsAddresses)
         {
             const BindingFlags flags = BindingFlags.Public | BindingFlags.Static;
-            Console.WriteLine("Type: {0}, Method: {1}", typeName, methodName);
+            
+            logger.DebugFormat("[CallStaticMethod] TypeName: {0}, MethodName: {1}", typeName, methodName);
+            
             try
             {
                 Type type;
                 string errorMsg;
                 if (!typeName.TryGetType(out type, out errorMsg))
                 {
-                    // Todo: Enqueue this message
-                    Console.WriteLine(errorMsg);
+                    logger.Error(errorMsg);
                     return null;
                 }
 
@@ -72,8 +76,7 @@ namespace RDotNet.ClrProxy
                 MethodInfo method;
                 if (!type.TryGetMethod(methodName, flags, converters, out method))
                 {
-                    // Todo: Enqueue this message
-                    Console.WriteLine("Method not found");
+                    logger.ErrorFormat("Method not found, Type: {0}, Method: {1}", typeName, methodName);
                     return null;
                 }
 
@@ -82,37 +85,108 @@ namespace RDotNet.ClrProxy
             }
             catch (Exception e)
             {
-                // Todo: Format exception then enqueue the message
-                Console.WriteLine(FormatException(e));
+                logger.Error("[CallStaticMethod]", e);
                 return null;
             }
         }
 
-        public static object CreateInstance(string typeName, long[] argumentsAddresses)
+        public static object GetStaticProperty(string typeName, string propertyName)
         {
+            logger.DebugFormat("[GetStaticProperty] TypeName: {0}, PropertyName: {1}", typeName, propertyName);
+
             try
             {
                 Type type;
                 string errorMsg;
                 if (!typeName.TryGetType(out type, out errorMsg))
                 {
-                    // Todo: Enqueue this message
-                    Console.WriteLine(errorMsg);
+                    logger.Error(errorMsg);
                     return null;
                 }
 
+                var property = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Static);
+                if (property == null)
+                {
+                    logger.ErrorFormat("Property {0} not found for Type: {1}", propertyName, type.FullName);
+                    return null;
+                }
+                if (!property.CanRead)
+                {
+                    logger.ErrorFormat("Property {0} can't be read for Type: {1}", propertyName, type.FullName);
+                    return null;
+                }
+
+                var result = property.GetGetMethod().Call(null, new IConverter[0]);
+                return dataConverter.ConvertBack(property.PropertyType, result);
+            }
+            catch (Exception e)
+            {
+                logger.Error("[GetStaticProperty]", e);
+                return null;
+            }
+        }
+
+        public static void SetStaticProperty(string typeName, string propertyName, long argumentAddresse)
+        {
+            logger.DebugFormat("[SetStaticProperty] TypeName: {0}, PropertyName: {1}", typeName, propertyName);
+
+            try
+            {
+                Type type;
+                string errorMsg;
+                if (!typeName.TryGetType(out type, out errorMsg))
+                {
+                    logger.Error(errorMsg);
+                    return;
+                }
+
+                var property = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Static);
+                if (property == null)
+                {
+                    logger.ErrorFormat("Property {0} not found for Type: {1}", propertyName, type.FullName);
+                    return;
+                }
+                if (!property.CanWrite)
+                {
+                    logger.ErrorFormat("Property {0} can't be written for Type: {1}", propertyName, type.FullName);
+                    return;
+                }
+
+                var converters = new[] { dataConverter.GetConverter(argumentAddresse) };
+
+                property.GetSetMethod().Call(null, converters);
+            }
+            catch (Exception e)
+            {
+                logger.Error("[SetStaticProperty]", e);
+            }
+        }
+
+        public static object CreateInstance(string typeName, long[] argumentsAddresses)
+        {
+            logger.DebugFormat("[CreateInstance] TypeName: {0}", typeName);
+
+            try
+            {
+                Type type;
+                string errorMsg;
+                if (!typeName.TryGetType(out type, out errorMsg))
+                {
+                    logger.Error(errorMsg);
+                    return null;
+                }
+
+// ReSharper disable PossibleNullReferenceException
                 var length = argumentsAddresses == null ? 0 : argumentsAddresses.Length;
                 var converters = new IConverter[length];
                 for (var i = 0; i < length; i++)
-                    // ReSharper disable PossibleNullReferenceException
                     converters[i] = dataConverter.GetConverter(argumentsAddresses[i]);
-                // ReSharper restore PossibleNullReferenceException
+// ReSharper restore PossibleNullReferenceException
 
                 ConstructorInfo ctor;
                 if (!type.TryGetConstructor(converters, out ctor))
                 {
-                    // Todo: Enqueue this message
-                    Console.WriteLine("Ctor not found");
+                    logger.ErrorFormat("Constructor not found for Type: {0}", typeName);
                     return null;
                 }
 
@@ -121,8 +195,7 @@ namespace RDotNet.ClrProxy
             }
             catch (Exception e)
             {
-                // Todo: Format exception then enqueue the message
-                Console.WriteLine(FormatException(e));
+                logger.Error("[CallStaticMethod]", e);
                 return null;
             }
         }
@@ -130,7 +203,9 @@ namespace RDotNet.ClrProxy
         public static object CallMethod(object instance, string methodName, long[] argumentsAddresses)
         {
             const BindingFlags flags = BindingFlags.Public | BindingFlags.Instance;
-            
+
+            logger.DebugFormat("[CallMethod] Instance: {0}, MethodName: {1}", instance, methodName);
+
             try
             {
                 if(instance == null)
@@ -138,18 +213,17 @@ namespace RDotNet.ClrProxy
 
                 var type = instance.GetType();
 
+// ReSharper disable PossibleNullReferenceException
                 var length = argumentsAddresses == null ? 0 : argumentsAddresses.Length;
                 var converters = new IConverter[length];
                 for (var i = 0; i < length; i++)
-// ReSharper disable PossibleNullReferenceException
                     converters[i] = dataConverter.GetConverter(argumentsAddresses[i]);
 // ReSharper restore PossibleNullReferenceException
 
                 MethodInfo method;
                 if (!type.TryGetMethod(methodName, flags, converters, out method))
                 {
-                    // Todo: Enqueue this message
-                    Console.WriteLine("Method not found");
+                    logger.ErrorFormat("Method not found for Type: {0}, Method: {1}", type, methodName);
                     return null;
                 }
 
@@ -158,15 +232,14 @@ namespace RDotNet.ClrProxy
             }
             catch (Exception e)
             {
-                // Todo: Format exception then enqueue the message
-                Console.WriteLine(FormatException(e));
+                logger.Error("[CallMethod]", e);
                 return null;
             }
         }
 
         public static object GetProperty(object instance, string propertyName)
         {
-            Console.WriteLine("GetProperty Instance: {0}, PropertyName: {1}", instance, propertyName);
+            logger.DebugFormat("[GetProperty] Instance: {0}, PropertyName: {1}", instance, propertyName);
 
             try
             {
@@ -178,14 +251,12 @@ namespace RDotNet.ClrProxy
                 var property = type.GetProperty(propertyName);
                 if (property == null)
                 {
-                    // Todo: Enqueue this message
-                    Console.WriteLine("Property {0} not found on type {1}", propertyName, type.FullName);
+                    logger.ErrorFormat("Property {0} not found for Type: {1}", propertyName, type.FullName);
                     return null;
                 }
                 if (!property.CanRead)
                 {
-                    // Todo: Enqueue this message
-                    Console.WriteLine("Property {0} can't be read on type {1}", propertyName, type.FullName);
+                    logger.ErrorFormat("Property {0} can't be read for Type: {1}", propertyName, type.FullName);
                     return null;
                 }
 
@@ -194,15 +265,14 @@ namespace RDotNet.ClrProxy
             }
             catch (Exception e)
             {
-                // Todo: Format exception then enqueue the message
-                Console.WriteLine(FormatException(e));
+                logger.Error("[GetProperty]", e);
                 return null;
             }
         }
 
         public static void SetProperty(object instance, string propertyName, long argumentAddresse)
         {
-            Console.WriteLine("SetProperty Instance: {0}, PropertyName: {1}, Addresse: {2}", instance, propertyName, argumentAddresse);
+            logger.DebugFormat("[SetProperty] Instance: {0}, PropertyName: {1}", instance, propertyName);
 
             try
             {
@@ -214,14 +284,12 @@ namespace RDotNet.ClrProxy
                 var property = type.GetProperty(propertyName);
                 if (property == null)
                 {
-                    // Todo: Enqueue this message
-                    Console.WriteLine("Property {0} not found on type {1}", propertyName, type.FullName);
+                    logger.ErrorFormat("Property {0} not found for Type: {1}", propertyName, type.FullName);
                     return;
                 }
                 if (!property.CanWrite)
                 {
-                    // Todo: Enqueue this message
-                    Console.WriteLine("Property {0} can't be write on type {1}", propertyName, type.FullName);
+                    logger.ErrorFormat("Property {0} can't be written for Type: {1}", propertyName, type.FullName);
                     return;
                 }
 
@@ -231,53 +299,9 @@ namespace RDotNet.ClrProxy
             }
             catch (Exception e)
             {
-                // Todo: Format exception then enqueue the message
-                Console.WriteLine(FormatException(e));
+                logger.Error("[SetProperty]", e);
             }
         }
-
-        #region Format exception
-
-        private static string FormatException(Exception exception)
-        {
-            var sb = new StringBuilder();
-
-            while (exception != null)
-            {
-                var sehe = exception as SEHException;
-                if (sehe != null)
-                    sb.Append("\nCaught an SEHException, but no additional information is available via ErrorMessageProvider\n");
-
-                AppendException(sb, exception);
-
-                var rtle = exception as ReflectionTypeLoadException;
-                if (rtle != null)
-                {
-                    foreach (var e in rtle.LoaderExceptions)
-                        AppendException(sb, e);
-                }
-
-                exception = exception.InnerException;
-            }
-
-            return ToUnixNewline(sb.ToString());
-        }
-
-        private static void AppendException(StringBuilder builder, Exception ex)
-        {
-            // Note that if using Environment.NewLine below instead of "\n", the rgui prompt is losing it
-            // Actually even with the latter it is, but less so. Annoying.
-            builder.AppendFormat("{0}Type:    {1}{0}Message: {2}{0}Method:  {3}{0}Stack trace:{0}{4}{0}{0}",
-                "\n", ex.GetType(), ex.Message, ex.TargetSite, ex.StackTrace);
-            // See whether this helps with the Rgui prompt:
-        }
-
-        private static string ToUnixNewline(string result)
-        {
-            return result.Replace("\r\n", "\n");
-        }
-
-        #endregion
     }
 }
 

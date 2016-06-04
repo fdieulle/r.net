@@ -25,6 +25,8 @@ extern "C" {
 
 	// Proxy methods
 	SEXP rCallStaticMethod(SEXP p);
+	SEXP rGetStatic(SEXP p);
+	SEXP rSetStatic(SEXP p);
 	SEXP rCreateObject(SEXP p);
 	SEXP rCall(SEXP p);
 	SEXP rGet(SEXP p);

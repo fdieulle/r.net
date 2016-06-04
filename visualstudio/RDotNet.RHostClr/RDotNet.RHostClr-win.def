@@ -5,6 +5,8 @@ rShutdownClr
 rRestartAppDomain
 rLoadAssembly
 rCallStaticMethod
+rGetStatic
+rSetStatic
 rCreateObject
 rCall
 rGet
