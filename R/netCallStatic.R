@@ -1,4 +1,4 @@
-#' Call a member method of a .Net type
+#' Call a static method from a .Net type
 #'
 #' @param typename The .Net full name type 
 #' @param methodName the static method name on the type

@@ -1,4 +1,4 @@
-#' Gets a static property value on a specified type
+#' Gets a static property value from .Net type
 #'
 #' @param typeName The type name where looking for the static property
 #' @param propertyName the static property name.

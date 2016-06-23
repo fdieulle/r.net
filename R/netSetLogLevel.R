@@ -7,7 +7,6 @@
 #'	Error
 #'
 #' @param level Log level
-#' @return 
 #' @export
 #' @examples
 #' \dontrun{

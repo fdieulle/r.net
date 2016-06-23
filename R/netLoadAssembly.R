@@ -1,4 +1,4 @@
-#' Loads a Common Language assembly. 
+#' Loads an assembly in the Common Language Runtime. 
 #'
 #' Loads an assembly. 
 #'

@@ -1,4 +1,4 @@
-#' Sets the property value of an object
+#' Sets property value on a .Net object
 #'
 #' @param x an external pointer on a .Net object
 #' @param propertyName the property name of the object

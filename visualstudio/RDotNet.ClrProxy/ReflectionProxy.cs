@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using RDotNet.ClrProxy.Converters;
+using RDotNet.ClrProxy.Loggers;
 
 namespace RDotNet.ClrProxy
 {
     public static class ReflectionProxy
     {
+        private static readonly Logger logger = Logger.Instance;
+
         public static bool IsFullyQualifiedAssemblyName(this string assemblyName)
         {
             return assemblyName.Contains("PublicKeyToken=");
@@ -352,6 +355,17 @@ namespace RDotNet.ClrProxy
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof (Nullable<>))
                 return type.GetGenericArguments()[0];
             return type;
+        }
+
+        public static Type GetType(string typeName)
+        {
+            Type type;
+            string errorMsg;
+            if (TryGetType(typeName, out type, out errorMsg))
+                return type;
+
+            logger.ErrorFormat("Unable to get type: {0}, {1}", typeName, errorMsg);
+            return null;
         }
     }
 }

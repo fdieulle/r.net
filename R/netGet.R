@@ -1,4 +1,4 @@
-#' Gets the property value of an object
+#' Gets property value from a .Net object
 #'
 #' @param x an external pointer on a .Net object
 #' @param propertyName the property name of the object
