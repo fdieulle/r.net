@@ -48,16 +48,46 @@ LONGLONG readSingleParameterFromSexp(SEXP p) {
 
 SEXP convertToSEXP(CLR_OBJ& clrObj) {
 
-	// Hold a reference on managed clrObj 
-	CLR_OBJ* pclrObj = new CLR_OBJ(clrObj);
-	
 	// Rprintf("convert to SEXP from Type: %d\n", pclrObj->vt);
 	
-	switch (pclrObj->vt)
+	switch (clrObj.vt)
 	{
 		case VT_INT:
-			return (SEXP) pclrObj->ullVal;
+		{	
+			SEXP result = (SEXP) clrObj.ullVal;
+			
+			if(TYPEOF(result) == EXTPTRSXP)
+				R_RegisterCFinalizerEx(result, clrObjectFinalizer, (Rboolean) 1);
+			
+			return result;
+		}
 		default:
 			return R_NilValue;
 	}
+}
+
+void clrObjectFinalizer(SEXP p) {
+	
+	LONGLONG address = (LONGLONG)p;
+
+	// 1 - Prepare arguments to call proxy
+	SAFEARRAY* args = SafeArrayCreateVector(VT_VARIANT, 0, 1);
+	long i = 0;
+
+	// 2 - external pointer on .Net object 
+	variant_t value(address);
+	SafeArrayPutElement(args, &i, &value); i++;
+
+	// 3 - Call the proxy
+	CLR_OBJ result;
+	char* errorMsg;
+	HRESULT hr = callProxy(L"DisposeInstance", args, &result, &errorMsg);
+
+	if(FAILED(hr)) {
+		error(errorMsg);
+		free(errorMsg);
+		return;
+	}
+
+	SafeArrayDestroy(args);
 }

@@ -28,7 +28,6 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
 
         private readonly Dictionary<SymbolicExpressionType, Func<SymbolicExpression, IConverter>> converterFactories = new Dictionary<SymbolicExpressionType, Func<SymbolicExpression, IConverter>>();
         private readonly Dictionary<Type, Func<object, SymbolicExpression>> convertersBack = new Dictionary<Type, Func<object, SymbolicExpression>>();
-        private readonly List<object> handles = new List<object>(); 
 
         private RDotNetDataConverter()
         {
@@ -53,14 +52,9 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
 
         public object ConvertBack(Type type, object data)
         {
-            handles.Clear();
-
             var sexp = ConvertToSexp(type, data);
             if (sexp == null)
                 return engine.NilValue.DangerousGetHandle();
-
-            // Keep the handle reference in order to prevent R and .Net to trigger GC before return data to R. 
-            handles.Add(sexp);
 
             return sexp.DangerousGetHandle();
         }

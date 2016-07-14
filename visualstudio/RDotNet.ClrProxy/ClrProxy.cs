@@ -200,6 +200,15 @@ namespace RDotNet.ClrProxy
             }
         }
 
+        public static void DisposeInstance(long address)
+        {
+            logger.Debug("[DisposeInstance]");
+
+            var converter = dataConverter.GetConverter(address) as IDisposable;
+            if(converter != null)
+                converter.Dispose();
+        }
+
         public static object CallMethod(object instance, string methodName, long[] argumentsAddresses)
         {
             const BindingFlags flags = BindingFlags.Public | BindingFlags.Instance;

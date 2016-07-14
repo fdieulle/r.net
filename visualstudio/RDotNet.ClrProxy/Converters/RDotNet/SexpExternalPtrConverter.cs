@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace RDotNet.ClrProxy.Converters.RDotNet
 {
-    public class SexpExternalPtrConverter : IConverter
+    public class SexpExternalPtrConverter : IConverter, IDisposable
     {
         private const string NET_OBJ_TAG = ".NetObj";
 
@@ -62,5 +62,15 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
 
             return engine.CreateFromNativeSexp(ptr);
         }
+
+        #region Implementation of IDisposable
+
+        public void Dispose()
+        {
+            var objPtr = sexp.Engine.GetFunction<R_ExternalPtrAddr>()(sexp.DangerousGetHandle());
+            Marshal.Release(objPtr);
+        }
+
+        #endregion
     }
 }

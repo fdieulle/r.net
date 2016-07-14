@@ -39,6 +39,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Buffer.cs" />
     <Compile Include="DefaultCtorData.cs" />
     <Compile Include="EnumSample.cs" />
     <Compile Include="HierarchicalData.cs" />

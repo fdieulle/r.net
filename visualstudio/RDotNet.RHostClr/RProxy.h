@@ -43,3 +43,4 @@ char* readStringFromSexp(SEXP p);
 SAFEARRAY* readParametersFromSexp(SEXP p);
 IUnknown* readInstanceFromSexp(SEXP p);
 SEXP convertToSEXP(CLR_OBJ &obj);
+void clrObjectFinalizer(SEXP p);
