@@ -5,8 +5,8 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
 {
     public class SexpPosixctVectorConverter : IConverter
     {
-        private static readonly Type[] singleValue = new[] { typeof(DateTime), typeof(DateTime[]) };
-        private static readonly Type[] multiValues = new[] { typeof(DateTime[]) };
+        private static readonly Type[] singleValue = new[] { typeof(DateTime), typeof(DateTime[]), typeof(Array) };
+        private static readonly Type[] multiValues = new[] { typeof(DateTime[]), typeof(Array) };
 
         private readonly Vector<double> sexpVector;
         private readonly Type[] types;
@@ -33,7 +33,7 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
         {
             if (type == typeof(DateTime))
                 return sexpVector.ToArray().FromTick(timezone)[0];
-            if (type == typeof(DateTime[]))
+            if (type == typeof(DateTime[]) || type == typeof(Array))
                 return sexpVector.ToArray().FromTick(timezone);
 
             throw new InvalidOperationException(string.Format("Unexpected type on converter from R: {0} to .Net: {1}", sexpVector.Type, type));

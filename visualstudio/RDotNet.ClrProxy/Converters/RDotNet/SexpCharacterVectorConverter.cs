@@ -4,8 +4,8 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
 {
     public class SexpCharacterVectorConverter : IConverter
     {
-        private static readonly Type[] singleValue = new[] { typeof(string), typeof(string[]) };
-        private static readonly Type[] multiValues = new[] { typeof(string[]) };
+        private static readonly Type[] singleValue = new[] { typeof(string), typeof(string[]), typeof(Array) };
+        private static readonly Type[] multiValues = new[] { typeof(string[]), typeof(Array) };
 
         private readonly Vector<string> sexpVector;
         private readonly Type[] types;
@@ -29,7 +29,7 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
         {
             if (type == typeof(string))
                 return sexpVector.ToArray()[0];
-            if (type == typeof(string[]))
+            if (type == typeof(string[]) || type == typeof(Array))
                 return sexpVector.ToArray();
             if (type.IsEnum)
                 return sexpVector.ToArray().ToEnum(type, true);

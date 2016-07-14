@@ -4,8 +4,8 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
 {
     public class SexpIntegerDifftimeVectorConverter : IConverter
     {
-        private static readonly Type[] singleValue = new[] { typeof(TimeSpan[]), typeof(TimeSpan) };
-        private static readonly Type[] multiValues = new[] { typeof(TimeSpan[]) };
+        private static readonly Type[] singleValue = new[] { typeof(TimeSpan), typeof(TimeSpan[]), typeof(Array) };
+        private static readonly Type[] multiValues = new[] { typeof(TimeSpan[]), typeof(Array) };
 
         private readonly Vector<int> sexpVector;
         private readonly Type[] types;
@@ -31,7 +31,7 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
         {
             if (type == typeof (TimeSpan))
                 return sexpVector.ToArray().ToTimespan(units)[0];
-            if (type == typeof(TimeSpan[]))
+            if (type == typeof(TimeSpan[]) || type == typeof(Array))
                 return sexpVector.ToArray().ToTimespan(units);
 
             throw new InvalidOperationException(string.Format("Unexpected type on converter from R: {0} to .Net: {1}", sexpVector.Type, type));
