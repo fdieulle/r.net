@@ -61,6 +61,9 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
 
         public SymbolicExpression ConvertToSexp(Type type, object data)
         {
+            if (data == null)
+                return engine.NilValue;
+
             Func<object, SymbolicExpression> convert;
             if (convertersBack.TryGetValue(type, out convert))
             {
@@ -71,8 +74,8 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
                 return sexp;
             }
 
-            if (data == null)
-                return engine.NilValue;
+            if (data.GetType().IsEnum)
+                return ConvertToSexp(typeof (string), data.ToString());
 
             // Try to convert a generic list or dictionary first
             SymbolicExpression result;
