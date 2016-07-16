@@ -7,6 +7,7 @@ using RDotNet.ClrProxy.Resources;
 
 namespace RDotNet.ClrProxy.Converters.RDotNet
 {
+// ReSharper disable InconsistentNaming
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate IntPtr R_MakeExternalPtr(IntPtr args, IntPtr tag, IntPtr prot);
 
@@ -15,6 +16,7 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate IntPtr R_ExternalPtrAddr(IntPtr args);
+// ReSharper restore InconsistentNaming
 
     public static class SymbolicExpressionExtensions
     {
@@ -186,6 +188,13 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
             return sexp;
         }
 
+        private const double TICKS_PER_MILLISECOND = 1e4;
+        private const double TICKS_PER_SECOND = TICKS_PER_MILLISECOND * 1e3;
+        private const double TICKS_PER_MINUTE = TICKS_PER_SECOND * 60;
+        private const double TICKS_PER_HOUR = TICKS_PER_MINUTE * 60;
+        private const double TICKS_PER_DAY = TICKS_PER_HOUR * 24;
+        private const double TICKS_PER_WEEK = TICKS_PER_DAY * 7; 
+
         public static TimeSpan[] ToTimespan(this double[] values, string units)
         {
             var length = values.Length;
@@ -194,23 +203,23 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
             {
                 case WEEKS:
                     for (var i = 0; i < length; i++)
-                        result[i] = TimeSpan.FromDays(7 * values[i]);
+                        result[i] = TimeSpan.FromTicks((long)(values[i] * TICKS_PER_WEEK));
                     return result;
                 case DAYS:
                     for (var i = 0; i < length; i++)
-                        result[i] = TimeSpan.FromDays(values[i]);
+                        result[i] = TimeSpan.FromTicks((long)(values[i] * TICKS_PER_DAY));
                     return result;
                 case HOURS:
                     for (var i = 0; i < length; i++)
-                        result[i] = TimeSpan.FromHours(values[i]);
+                        result[i] = TimeSpan.FromTicks((long)(values[i] * TICKS_PER_HOUR));
                     return result;
                 case MINS:
                     for (var i = 0; i < length; i++)
-                        result[i] = TimeSpan.FromMinutes(values[i]);
+                        result[i] = TimeSpan.FromTicks((long)(values[i] * TICKS_PER_MINUTE));
                     return result;
                 default:
                     for (var i = 0; i < length; i++)
-                        result[i] = TimeSpan.FromSeconds(values[i]);
+                        result[i] = TimeSpan.FromTicks((long)(values[i] * TICKS_PER_SECOND));
                     return result;
             }
         }
@@ -226,27 +235,27 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
                 case WEEKS:
                     for (var i = 0; i < nrow; i++)
                         for (var j = 0; j < ncol; j++)
-                            result[i, j] = TimeSpan.FromDays(7 * values[i, j]);
+                            result[i, j] = TimeSpan.FromTicks((long)(values[i, j] * TICKS_PER_WEEK));
                     return result;
                 case DAYS:
                     for (var i = 0; i < nrow; i++)
                         for (var j = 0; j < ncol; j++)
-                            result[i, j] = TimeSpan.FromDays(values[i, j]);
+                            result[i, j] = TimeSpan.FromTicks((long)(values[i, j] * TICKS_PER_DAY));
                     return result;
                 case HOURS:
                     for (var i = 0; i < nrow; i++)
                         for (var j = 0; j < ncol; j++)
-                            result[i, j] = TimeSpan.FromHours(values[i, j]);
+                            result[i, j] = TimeSpan.FromTicks((long)(values[i, j] * TICKS_PER_HOUR));
                     return result;
                 case MINS:
                     for (var i = 0; i < nrow; i++)
                         for (var j = 0; j < ncol; j++)
-                            result[i, j] = TimeSpan.FromMinutes(values[i, j]);
+                            result[i, j] = TimeSpan.FromTicks((long)(values[i, j] * TICKS_PER_MINUTE));
                     return result;
                 default:
                     for (var i = 0; i < nrow; i++)
                         for (var j = 0; j < ncol; j++)
-                            result[i, j] = TimeSpan.FromSeconds(values[i, j]);
+                            result[i, j] = TimeSpan.FromTicks((long)(values[i, j] * TICKS_PER_SECOND));
                     return result;
             }
         }
@@ -259,23 +268,23 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
             {
                 case WEEKS:
                     for (var i = 0; i < length; i++)
-                        result[i] = TimeSpan.FromDays(7 * values[i]);
+                        result[i] = TimeSpan.FromTicks((long)(values[i] * TICKS_PER_WEEK));
                     return result;
                 case DAYS:
                     for (var i = 0; i < length; i++)
-                        result[i] = TimeSpan.FromDays(values[i]);
+                        result[i] = TimeSpan.FromTicks((long)(values[i] * TICKS_PER_DAY));
                     return result;
                 case HOURS:
                     for (var i = 0; i < length; i++)
-                        result[i] = TimeSpan.FromHours(values[i]);
+                        result[i] = TimeSpan.FromTicks((long)(values[i] * TICKS_PER_HOUR));
                     return result;
                 case MINS:
                     for (var i = 0; i < length; i++)
-                        result[i] = TimeSpan.FromMinutes(values[i]);
+                        result[i] = TimeSpan.FromTicks((long)(values[i] * TICKS_PER_MINUTE));
                     return result;
                 default:
                     for (var i = 0; i < length; i++)
-                        result[i] = TimeSpan.FromSeconds(values[i]);
+                        result[i] = TimeSpan.FromTicks((long)(values[i] * TICKS_PER_SECOND));
                     return result;
             }
         }
@@ -291,27 +300,27 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
                 case WEEKS:
                     for (var i = 0; i < nrow; i++)
                         for (var j = 0; j < ncol; j++)
-                            result[i, j] = TimeSpan.FromDays(7 * values[i, j]);
+                            result[i, j] = TimeSpan.FromTicks((long)(values[i, j] * TICKS_PER_WEEK));
                     return result;
                 case DAYS:
                     for (var i = 0; i < nrow; i++)
                         for (var j = 0; j < ncol; j++)
-                            result[i, j] = TimeSpan.FromDays(values[i, j]);
+                            result[i, j] = TimeSpan.FromTicks((long)(values[i, j] * TICKS_PER_DAY));
                     return result;
                 case HOURS:
                     for (var i = 0; i < nrow; i++)
                         for (var j = 0; j < ncol; j++)
-                            result[i, j] = TimeSpan.FromHours(values[i, j]);
+                            result[i, j] = TimeSpan.FromTicks((long)(values[i, j] * TICKS_PER_HOUR));
                     return result;
                 case MINS:
                     for (var i = 0; i < nrow; i++)
                         for (var j = 0; j < ncol; j++)
-                            result[i, j] = TimeSpan.FromMinutes(values[i, j]);
+                            result[i, j] = TimeSpan.FromTicks((long)(values[i, j] * TICKS_PER_MINUTE));
                     return result;
                 default:
                     for (var i = 0; i < nrow; i++)
                         for (var j = 0; j < ncol; j++)
-                            result[i, j] = TimeSpan.FromSeconds(values[i, j]);
+                            result[i, j] = TimeSpan.FromTicks((long)(values[i, j] * TICKS_PER_SECOND));
                     return result;
             }
         }

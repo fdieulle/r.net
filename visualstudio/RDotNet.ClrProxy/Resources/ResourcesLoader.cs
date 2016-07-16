@@ -136,10 +136,11 @@ namespace RDotNet.ClrProxy.Resources
         public static DateTime[] FromTick(this double[] ticks, TimeZoneInfo timezone)
         {
             var length = ticks.Length;
+            var origin = Origin.Ticks;
             var result = new DateTime[length];
             for (var i = 0; i < length; i++)
             {
-                result[i] = TimeZoneInfo.ConvertTime(Origin.AddSeconds(ticks[i]), timezone);
+                result[i] = TimeZoneInfo.ConvertTime(new DateTime(origin + (long)(ticks[i] * 1e7)), timezone);
             }
             return result;
         }
@@ -149,11 +150,12 @@ namespace RDotNet.ClrProxy.Resources
             var nrow = ticks.GetLength(0);
             var ncol = ticks.GetLength(1);
 
+            var origin = Origin.Ticks;
             var result = new DateTime[nrow, ncol];
             for (var i = 0; i < nrow; i++)
             {
                 for (var j = 0; j < ncol; j++)
-                    result[i, j] = TimeZoneInfo.ConvertTime(Origin.AddSeconds(ticks[i, j]), timezone);
+                    result[i, j] = TimeZoneInfo.ConvertTime(new DateTime(origin + (long)(ticks[i, j] * 1e7)), timezone);
             }
             return result;
         }
