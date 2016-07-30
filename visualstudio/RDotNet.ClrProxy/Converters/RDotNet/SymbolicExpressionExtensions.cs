@@ -376,5 +376,26 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
         }
 
         #endregion
+
+        #region RDotNetDataConverter extensions
+
+        public static void SetupToRConverter<T>(this RDotNetDataConverter dataConverter, Func<T, SymbolicExpression> converter)
+        {
+            dataConverter.SetupToRConverter(typeof(T), p => converter((T)p));
+        }
+
+        public static bool RemoveToRConverter<T>(this RDotNetDataConverter dataConverter)
+        {
+            return dataConverter.RemoveToRConverter(typeof (T));
+        }
+
+        public static Func<T, SymbolicExpression> GetToRConverter<T>(this RDotNetDataConverter dataConverter)
+        {
+            var converter = dataConverter.GetToRConverter(typeof (T));
+            if (converter == null) return null;
+            return p => converter(p);
+        }
+
+        #endregion
     }
 }

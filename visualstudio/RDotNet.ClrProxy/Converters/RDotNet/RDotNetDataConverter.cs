@@ -115,6 +115,21 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
             converterFactories[type] = createConverter;
         }
 
+        public bool RemoveFromRConverter(SymbolicExpressionType type)
+        {
+            if (logger.IsDebugEnabled && converterFactories.ContainsKey(type))
+                logger.DebugFormat("Remove converter R -> C#, Type: {0}", type);
+
+            return converterFactories.Remove(type);
+        }
+
+        public Func<SymbolicExpression, IConverter> GetFromRConverter(SymbolicExpressionType type)
+        {
+            Func<SymbolicExpression, IConverter> converter;
+            converterFactories.TryGetValue(type, out converter);
+            return converter;
+        }
+
         protected virtual IConverter ConvertFromCharacterVector(SymbolicExpression sexp)
         {
             if (sexp.IsMatrix())
@@ -240,6 +255,8 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
 
         public void SetupToRConverter(Type type, Func<object, SymbolicExpression> converter)
         {
+            if (type == null) return;
+
             if (logger.IsDebugEnabled)
             {
                 logger.DebugFormat(
@@ -249,6 +266,25 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
             }
 
             convertersBack[type] = converter;
+        }
+
+        public bool RemoveToRConverter(Type type)
+        {
+            if (type == null) return false;
+
+            if (logger.IsDebugEnabled && convertersBack.ContainsKey(type))
+                logger.DebugFormat("Remove converter C# -> R, Type: {0}", type);
+
+            return convertersBack.Remove(type);
+        }
+
+        public Func<object, SymbolicExpression> GetToRConverter(Type type)
+        {
+            if (type == null) return null;
+
+            Func<object, SymbolicExpression> converter;
+            convertersBack.TryGetValue(type, out converter);
+            return converter;
         }
 
         #endregion
