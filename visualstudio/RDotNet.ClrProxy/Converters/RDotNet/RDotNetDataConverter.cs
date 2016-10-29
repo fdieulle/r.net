@@ -66,13 +66,11 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
 
             Func<object, SymbolicExpression> convert;
             if (convertersBack.TryGetValue(type, out convert))
-            {
-                var sexp = convert(data);
-                if (sexp == null)
-                    return engine.NilValue;
+                return convert(data) ?? engine.NilValue;
 
+            var sexp = data as SymbolicExpression;
+            if (sexp != null)
                 return sexp;
-            }
 
             if (data.GetType().IsEnum)
                 return ConvertToSexp(typeof (string), data.ToString());
