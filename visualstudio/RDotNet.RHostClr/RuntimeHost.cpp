@@ -49,9 +49,9 @@ HRESULT startClr(const char* clrVersion, char** errorMsg) {
 
 	if(!fLoadable) {
 		const char* m = ".NET runtime %s cannot be loaded";
-		int l = strlen(m);
+		size_t l = strlen(m) + strlen(clrVersion);
 		char* dest = new char[l];
-		sprintf(dest, m, clrVersion);
+		sprintf_s(dest, l, m, clrVersion);
 		*errorMsg = dest;
 		stopClr();
 		return hr;
@@ -172,6 +172,8 @@ HRESULT loadDomain(const char* name, const char* appBaseDir, const char* appConf
 	}
 	
 	*appDomain = pAppDomain;
+
+	return hr;
 }
 
 HRESULT unloadDomain(mscorlib::_AppDomain* appDomain, char** errorMsg) {
@@ -204,7 +206,8 @@ wchar_t* convertToWChar(const char* from) {
 
 	size_t size = strlen(from) + 1;
 	wchar_t* to = new wchar_t[size];
-	mbstowcs(to, from, size);
+	size_t outSize;
+    mbstowcs_s(&outSize, to, size, from, size-1);
 
 	return to;
 }

@@ -15,7 +15,8 @@ REM Get MsBuild.exe
 
 set MODE=Build
 set BUILD_CONFIGURATION=Release
-set MSB_OPTIONS=/p:VisualStudioVersion=11.0 /consoleloggerparameters:ErrorsOnly
+REM set MSB_OPTIONS=/p:VisualStudioVersion=11.0 /consoleloggerparameters:ErrorsOnly
+set MSB_OPTIONS=/p:VisualStudioVersion=11.0
 
 set PROXY_CSPROJ=%CURRENT_DIR%\RDotNet.ClrProxy\RDotNet.ClrProxy.csproj
 set RHOSTCLR_CSPROJ=%CURRENT_DIR%\RDotNet.RHostClr\RDotNet.RHostClr.vcxproj
