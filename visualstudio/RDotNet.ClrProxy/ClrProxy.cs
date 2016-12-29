@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using RDotNet.ClrProxy.Converters;
 using RDotNet.ClrProxy.Converters.RDotNet;
 using RDotNet.ClrProxy.Loggers;
@@ -30,24 +31,32 @@ namespace RDotNet.ClrProxy
             if (string.IsNullOrEmpty(pathOrAssemblyName))
                 return null;
 
-            var filePath = pathOrAssemblyName.Replace("/", "\\");
-            if (File.Exists(filePath))
+            try
             {
-                var assemblyName = new FileInfo(filePath).Name;
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                var filePath = pathOrAssemblyName.Replace("/", "\\");
+                if (File.Exists(filePath))
                 {
-                    if (string.Equals(assembly.ManifestModule.Name, assemblyName))
-                        return assembly;
+                    var assemblyName = new FileInfo(filePath).Name;
+                    foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                    {
+                        if (string.Equals(assembly.ManifestModule.Name, assemblyName))
+                            return assembly;
+                    }
+
+                    return Assembly.LoadFrom(filePath);
                 }
 
-                return Assembly.LoadFrom(filePath);
+                if (pathOrAssemblyName.IsFullyQualifiedAssemblyName())
+                    return Assembly.Load(pathOrAssemblyName);
+
+                throw new FileLoadException(string.Format("Unable to load assembly: {0}", pathOrAssemblyName));
             }
-
-            if (pathOrAssemblyName.IsFullyQualifiedAssemblyName())
-                return Assembly.Load(pathOrAssemblyName);
-
-            logger.ErrorFormat("Unable to load assembly: {0}", pathOrAssemblyName);
-            return null;
+            catch (Exception e)
+            {
+                logger.Error("[LoadAssembly]", e);
+                LastException = Format(e);
+                throw;
+            }
         }
 
         public static object CallStaticMethod(string typeName, string methodName, long[] argumentsAddresses)
@@ -61,10 +70,7 @@ namespace RDotNet.ClrProxy
                 Type type;
                 string errorMsg;
                 if (!typeName.TryGetType(out type, out errorMsg))
-                {
-                    logger.Error(errorMsg);
-                    return null;
-                }
+                    throw new TypeAccessException(errorMsg);
 
                 var length = argumentsAddresses == null ? 0 : argumentsAddresses.Length;
                 var converters = new IConverter[length];
@@ -75,10 +81,7 @@ namespace RDotNet.ClrProxy
 
                 MethodInfo method;
                 if (!type.TryGetMethod(methodName, flags, converters, out method))
-                {
-                    logger.ErrorFormat("Method not found, Type: {0}, Method: {1}", typeName, methodName);
-                    return null;
-                }
+                    throw new MissingMethodException(string.Format("Method not found, Type: {0}, Method: {1}", typeName, methodName));
 
                 var result = method.Call(null, converters);
                 return dataConverter.ConvertBack(method.ReturnType, result);
@@ -86,7 +89,8 @@ namespace RDotNet.ClrProxy
             catch (Exception e)
             {
                 logger.Error("[CallStaticMethod]", e);
-                return null;
+                LastException = Format(e);
+                throw;
             }
         }
 
@@ -99,22 +103,13 @@ namespace RDotNet.ClrProxy
                 Type type;
                 string errorMsg;
                 if (!typeName.TryGetType(out type, out errorMsg))
-                {
-                    logger.Error(errorMsg);
-                    return null;
-                }
+                    throw new TypeAccessException(errorMsg);
 
                 var property = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Static);
                 if (property == null)
-                {
-                    logger.ErrorFormat("Property {0} not found for Type: {1}", propertyName, type.FullName);
-                    return null;
-                }
+                    throw new MissingMemberException(string.Format("Static property {0} not found for Type: {1}", propertyName, type.FullName));
                 if (!property.CanRead)
-                {
-                    logger.ErrorFormat("Property {0} can't be read for Type: {1}", propertyName, type.FullName);
-                    return null;
-                }
+                    throw new InvalidOperationException(string.Format("Static property {0} can't be get for Type: {1}", propertyName, type.FullName));
 
                 var result = property.GetGetMethod().Call(null, new IConverter[0]);
                 return dataConverter.ConvertBack(property.PropertyType, result);
@@ -122,7 +117,8 @@ namespace RDotNet.ClrProxy
             catch (Exception e)
             {
                 logger.Error("[GetStaticProperty]", e);
-                return null;
+                LastException = Format(e);
+                throw;
             }
         }
 
@@ -135,22 +131,13 @@ namespace RDotNet.ClrProxy
                 Type type;
                 string errorMsg;
                 if (!typeName.TryGetType(out type, out errorMsg))
-                {
-                    logger.Error(errorMsg);
-                    return;
-                }
+                    throw new TypeAccessException(errorMsg);
 
                 var property = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Static);
                 if (property == null)
-                {
-                    logger.ErrorFormat("Property {0} not found for Type: {1}", propertyName, type.FullName);
-                    return;
-                }
+                    throw new MissingMemberException(string.Format("Static property {0} not found for Type: {1}", propertyName, type.FullName));
                 if (!property.CanWrite)
-                {
-                    logger.ErrorFormat("Property {0} can't be written for Type: {1}", propertyName, type.FullName);
-                    return;
-                }
+                    throw new InvalidOperationException(string.Format("Static property {0} can't be set for Type: {1}", propertyName, type.FullName));
 
                 var converters = new[] { dataConverter.GetConverter(argumentAddresse) };
 
@@ -159,6 +146,8 @@ namespace RDotNet.ClrProxy
             catch (Exception e)
             {
                 logger.Error("[SetStaticProperty]", e);
+                LastException = Format(e);
+                throw;
             }
         }
 
@@ -171,10 +160,7 @@ namespace RDotNet.ClrProxy
                 Type type;
                 string errorMsg;
                 if (!typeName.TryGetType(out type, out errorMsg))
-                {
-                    logger.Error(errorMsg);
-                    return null;
-                }
+                    throw new TypeAccessException(errorMsg);
 
 // ReSharper disable PossibleNullReferenceException
                 var length = argumentsAddresses == null ? 0 : argumentsAddresses.Length;
@@ -185,18 +171,16 @@ namespace RDotNet.ClrProxy
 
                 ConstructorInfo ctor;
                 if (!type.TryGetConstructor(converters, out ctor))
-                {
-                    logger.ErrorFormat("Constructor not found for Type: {0}", typeName);
-                    return null;
-                }
+                    throw new MissingMemberException(string.Format("Constructor not found for Type: {0}", typeName));
 
                 var result = ctor.Call(converters);
                 return dataConverter.ConvertBack(type, result);
             }
             catch (Exception e)
             {
-                logger.Error("[CallStaticMethod]", e);
-                return null;
+                logger.Error("[CreateInstance]", e);
+                LastException = Format(e);
+                throw;
             }
         }
 
@@ -204,9 +188,18 @@ namespace RDotNet.ClrProxy
         {
             logger.Debug("[DisposeInstance]");
 
-            var converter = dataConverter.GetConverter(address) as IDisposable;
-            if(converter != null)
-                converter.Dispose();
+            try
+            {
+                var converter = dataConverter.GetConverter(address) as IDisposable;
+                if (converter != null)
+                    converter.Dispose();
+            }
+            catch (Exception e)
+            {
+                logger.Error("[DisposeInstance]", e);
+                LastException = Format(e);
+                throw;
+            }
         }
 
         public static object CallMethod(object instance, string methodName, long[] argumentsAddresses)
@@ -217,7 +210,7 @@ namespace RDotNet.ClrProxy
 
             try
             {
-                if(instance == null)
+                if (instance == null)
                     throw new ArgumentNullException("instance");
 
                 var type = instance.GetType();
@@ -231,10 +224,7 @@ namespace RDotNet.ClrProxy
 
                 MethodInfo method;
                 if (!type.TryGetMethod(methodName, flags, converters, out method))
-                {
-                    logger.ErrorFormat("Method not found for Type: {0}, Method: {1}", type, methodName);
-                    return null;
-                }
+                    throw new MissingMethodException(string.Format("Method not found for Type: {0}, Method: {1}", type, methodName));
 
                 var result = method.Call(instance, converters);
                 return dataConverter.ConvertBack(method.ReturnType, result);
@@ -242,7 +232,8 @@ namespace RDotNet.ClrProxy
             catch (Exception e)
             {
                 logger.Error("[CallMethod]", e);
-                return null;
+                LastException = Format(e);
+                throw;
             }
         }
 
@@ -259,15 +250,10 @@ namespace RDotNet.ClrProxy
 
                 var property = type.GetProperty(propertyName);
                 if (property == null)
-                {
-                    logger.ErrorFormat("Property {0} not found for Type: {1}", propertyName, type.FullName);
-                    return null;
-                }
+                    throw new MissingMemberException(string.Format("Property {0} not found for Type: {1}", propertyName, type.FullName));
+                
                 if (!property.CanRead)
-                {
-                    logger.ErrorFormat("Property {0} can't be read for Type: {1}", propertyName, type.FullName);
-                    return null;
-                }
+                    throw new InvalidOperationException(string.Format("Property {0} can't be get for Type: {1}", propertyName, type.FullName));
 
                 var result = property.GetGetMethod().Call(instance, new IConverter[0]);
                 return dataConverter.ConvertBack(property.PropertyType, result);
@@ -275,7 +261,8 @@ namespace RDotNet.ClrProxy
             catch (Exception e)
             {
                 logger.Error("[GetProperty]", e);
-                return null;
+                LastException = Format(e);
+                throw;
             }
         }
 
@@ -292,15 +279,10 @@ namespace RDotNet.ClrProxy
 
                 var property = type.GetProperty(propertyName);
                 if (property == null)
-                {
-                    logger.ErrorFormat("Property {0} not found for Type: {1}", propertyName, type.FullName);
-                    return;
-                }
+                    throw new MissingMemberException(string.Format("Property {0} not found for Type: {1}", propertyName, type.FullName));
+                
                 if (!property.CanWrite)
-                {
-                    logger.ErrorFormat("Property {0} can't be written for Type: {1}", propertyName, type.FullName);
-                    return;
-                }
+                    throw new InvalidOperationException(string.Format("Property {0} can't be set for Type: {1}", propertyName, type.FullName));
 
                 var converters = new[] {dataConverter.GetConverter(argumentAddresse)};
 
@@ -309,7 +291,20 @@ namespace RDotNet.ClrProxy
             catch (Exception e)
             {
                 logger.Error("[SetProperty]", e);
+                LastException = Format(e);
+                throw;
             }
+        }
+
+        public static string LastException { get; private set; }
+
+        private static readonly StringBuilder builder = new StringBuilder();
+        private static string Format(Exception e)
+        {
+            AbstractLogger.FormatException(builder, e);
+            var result = builder.ToString();
+            builder.Clear();
+            return result;
         }
     }
 }

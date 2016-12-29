@@ -20,3 +20,4 @@ HRESULT unloadDomain(mscorlib::_AppDomain* appDomain, char** errorMsg);
 
 void printHResult(HRESULT hr);
 wchar_t* convertToWChar(const char* str);
+char* bstrToCString(bstr_t* src);

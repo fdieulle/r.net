@@ -2,6 +2,7 @@
 
 mscorlib::_AssemblyPtr proxyAssembly = NULL;
 mscorlib::_TypePtr clrProxyType = NULL;
+bstr_t getLastException("get_LastException");
 
 HRESULT loadClrProxy(mscorlib::_AppDomain* appDomain, char* appBaseDir, char** errorMsg) {
 	
@@ -37,18 +38,28 @@ void unloadClrProxy() {
 
 HRESULT callProxy(PCWSTR methodName, SAFEARRAY* args, VARIANT* result, char** errorMsg) {
 
-	bstr_t bstrMethodName(methodName);
+	HRESULT hr;
+	try 
+	{
+		bstr_t bstrMethodName(methodName);
 
-	HRESULT hr = clrProxyType->InvokeMember_3(
-		bstrMethodName, 
-		static_cast<mscorlib::BindingFlags>(mscorlib::BindingFlags_InvokeMethod | mscorlib::BindingFlags_Static | mscorlib::BindingFlags_Public),
-		NULL,
-		vtMissing,
-		args,
-		result);
-	
+		hr = clrProxyType->InvokeMember_3(
+			bstrMethodName, 
+			static_cast<mscorlib::BindingFlags>(mscorlib::BindingFlags_InvokeMethod | mscorlib::BindingFlags_Static | mscorlib::BindingFlags_Public),
+			NULL, vtMissing, args, result);
+
+	} 
+	catch(_com_error& error) { }
+
 	if(FAILED(hr)) {
-		*errorMsg = "Failure in callProxy";
+		
+		HRESULT hr2 = clrProxyType->InvokeMember_3(
+			getLastException,
+			static_cast<mscorlib::BindingFlags>(mscorlib::BindingFlags_InvokeMethod | mscorlib::BindingFlags_Static | mscorlib::BindingFlags_Public),
+			NULL, vtMissing, NULL, result);
+
+		bstr_t tmpBstr(result->bstrVal);
+		*errorMsg = bstrToCString(&tmpBstr);
 	}
 
 	return hr;

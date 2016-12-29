@@ -32,7 +32,7 @@ namespace RDotNet.ClrProxy.Loggers
 
         protected override void ErrorOverride(string message)
         {
-            Console.Error.WriteLine(message);
+            // Do nothing
         }
 
         #endregion

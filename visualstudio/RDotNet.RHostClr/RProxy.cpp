@@ -33,7 +33,8 @@ SEXP rCallStaticMethod(SEXP p) {
 	HRESULT hr = callProxy(L"CallStaticMethod", args, &result, &errorMsg);
 	
 	if(FAILED(hr)) {
-		error(errorMsg);
+		Rprintf(errorMsg);
+		error("Exception during netCallStatic !");
 		free(errorMsg);
 		return R_NilValue;
 	}
@@ -73,7 +74,8 @@ SEXP rGetStatic(SEXP p) {
 	HRESULT hr = callProxy(L"GetStaticProperty", args, &result, &errorMsg);
 	
 	if(FAILED(hr)) {
-		error(errorMsg);
+		Rprintf(errorMsg);
+		error("Exception during netGetStatic !");
 		free(errorMsg);
 		return R_NilValue;
 	}
@@ -114,7 +116,8 @@ SEXP rSetStatic(SEXP p) {
 	HRESULT hr = callProxy(L"SetStaticProperty", args, &result, &errorMsg);
 
 	if(FAILED(hr)) {
-		error(errorMsg);
+		Rprintf(errorMsg);
+		error("Exception during netSetStatic !");
 		free(errorMsg);
 		return R_NilValue;
 	}
@@ -151,7 +154,8 @@ SEXP rCreateObject(SEXP p) {
 	HRESULT hr = callProxy(L"CreateInstance", args, &result, &errorMsg);
 	
 	if(FAILED(hr)) {
-		error(errorMsg);
+		Rprintf(errorMsg);
+		error("Exception during netNew !");
 		free(errorMsg);
 		return R_NilValue;
 	}
@@ -199,7 +203,8 @@ SEXP rCall(SEXP p) {
 	HRESULT hr = callProxy(L"CallMethod", args, &result, &errorMsg);
 	
 	if(FAILED(hr)) {
-		error(errorMsg);
+		Rprintf(errorMsg);
+		error("Exception during netCall !");
 		free(errorMsg);
 		return R_NilValue;
 	}
@@ -236,7 +241,8 @@ SEXP rGet(SEXP p) {
 	HRESULT hr = callProxy(L"GetProperty", args, &result, &errorMsg);
 	
 	if(FAILED(hr)) {
-		error(errorMsg);
+		Rprintf(errorMsg);
+		error("Exception during netGet !");
 		free(errorMsg);
 		return R_NilValue;
 	}
@@ -277,7 +283,8 @@ SEXP rSet(SEXP p) {
 	HRESULT hr = callProxy(L"SetProperty", args, &result, &errorMsg);
 
 	if(FAILED(hr)) {
-		error(errorMsg);
+		Rprintf(errorMsg);
+		error("Exception during netSet !");
 		free(errorMsg);
 		return R_NilValue;
 	}

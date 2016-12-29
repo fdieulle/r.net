@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace RDotNet.ClrProxy.Loggers
@@ -161,39 +159,18 @@ namespace RDotNet.ClrProxy.Loggers
 
         #region Format exception
 
-        private static void FormatException(StringBuilder sb, Exception exception)
+        public static void FormatException(StringBuilder sb, Exception e)
         {
-            while (exception != null)
+            while (e != null)
             {
-                var sehe = exception as SEHException;
-                if (sehe != null)
-                    sb.Append("\nCaught an SEHException, but no additional information is available via ErrorMessageProvider\n");
+                sb.AppendLine();
+                sb.AppendFormat("[Message] {0}", e.Message);
+                sb.AppendLine();
+                sb.AppendFormat("[StackTrace] {0}", e.StackTrace);
+                sb.AppendLine();
 
-                AppendException(sb, exception);
-
-                var rtle = exception as ReflectionTypeLoadException;
-                if (rtle != null)
-                {
-                    foreach (var e in rtle.LoaderExceptions)
-                        AppendException(sb, e);
-                }
-
-                exception = exception.InnerException;
+                e = e.InnerException;
             }
-        }
-
-        private static void AppendException(StringBuilder builder, Exception ex)
-        {
-            // Note that if using Environment.NewLine below instead of "\n", the rgui prompt is losing it
-            // Actually even with the latter it is, but less so. Annoying.
-            builder.AppendFormat("{0}Type:    {1}{0}Message: {2}{0}Method:  {3}{0}Stack trace:{0}{4}{0}{0}",
-                "\n", ex.GetType(), ex.Message, ex.TargetSite, ex.StackTrace);
-            // See whether this helps with the Rgui prompt:
-        }
-
-        private static string ToUnixNewline(string result)
-        {
-            return result.Replace("\r\n", "\n");
         }
 
         #endregion

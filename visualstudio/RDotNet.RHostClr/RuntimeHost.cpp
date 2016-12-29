@@ -211,3 +211,16 @@ wchar_t* convertToWChar(const char* from) {
 
 	return to;
 }
+
+char* bstrToCString(bstr_t * src) {
+#ifndef  UNICODE 
+	return src;
+#else
+	size_t origsize = wcslen(*src) + 1;
+	size_t convertedChars = 0;
+	const size_t newsize = origsize*2;
+	char *nstring = new char[newsize];
+	wcstombs_s(&convertedChars, nstring, newsize, *src, _TRUNCATE);
+	return nstring;
+#endif
+}
