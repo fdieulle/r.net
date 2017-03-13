@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using NUnit.Framework;
-using RDotNet.ClrProxy.Resources;
 
 namespace RDotNet.ClrProxyTests
 {
@@ -14,8 +13,6 @@ namespace RDotNet.ClrProxyTests
         [Test]
         public void GenerateMapping()
         {
-            Dictionary<string, TimeZoneInfo> d1;
-            Dictionary<TimeZoneInfo, string> d2;
             //ResourcesLoader.LoadOlsonWindowsMapping(out d1, out d2);
             var windowsTimeZones = TimeZoneInfo.GetSystemTimeZones();
             foreach(var tz in windowsTimeZones)
@@ -62,7 +59,9 @@ namespace RDotNet.ClrProxyTests
             var mapZones = new OlsonWindowsMapItem[count];
             for (var i = 0; i < count; i++)
             {
+// ReSharper disable PossibleNullReferenceException
                 if(nodes[i].Attributes == null)
+// ReSharper restore PossibleNullReferenceException
                     continue;
 
                 var other = nodes[i].Attributes["other"].Value;

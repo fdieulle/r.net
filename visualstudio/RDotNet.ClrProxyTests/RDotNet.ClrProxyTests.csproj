@@ -46,6 +46,7 @@
     <Compile Include="DateTimeTests.cs" />
     <Compile Include="LoggerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="R6\R6ClassGeneratorTests.cs" />
     <Compile Include="ReflectionTests.cs" />
   </ItemGroup>
   <ItemGroup>
