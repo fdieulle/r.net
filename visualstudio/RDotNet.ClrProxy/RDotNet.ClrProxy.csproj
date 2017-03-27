@@ -72,7 +72,8 @@
     <Compile Include="Loggers\LogLevel.cs" />
     <Compile Include="Loggers\RConsoleLogger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="R6Generator.cs" />
+    <Compile Include="R6\R6CtorAttribute.cs" />
+    <Compile Include="R6\R6Generator.cs" />
     <Compile Include="ReflectionProxy.cs" />
     <Compile Include="Resources\ResourcesLoader.cs" />
   </ItemGroup>

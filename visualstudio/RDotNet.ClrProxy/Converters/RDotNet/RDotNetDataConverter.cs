@@ -37,6 +37,11 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
 
         #region Implementation of IDataConverter
 
+        public bool IsDefined(Type type)
+        {
+            return convertersBack.ContainsKey(type);
+        }
+
         public IConverter GetConverter(long address)
         {
             var sexp = engine.CreateFromNativeSexp(new IntPtr(address));
@@ -202,6 +207,7 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
         private void SetupToRConverters()
         {
             SetupToRConverter(typeof(void), p => null);
+
             SetupToRConverter(typeof(string), p => engine.CreateCharacter((string)p));
             SetupToRConverter(typeof(string[]), p => engine.CreateCharacterVector((string[])p));
             SetupToRConverter(typeof(List<string>), p => engine.CreateCharacterVector((IEnumerable<string>)p));
