@@ -43,8 +43,15 @@
     <Compile Include="DefaultCtorData.cs" />
     <Compile Include="EnumSample.cs" />
     <Compile Include="HierarchicalData.cs" />
+    <Compile Include="Model\IData.cs" />
     <Compile Include="StaticClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RDotNet.ClrProxy\RDotNet.ClrProxy.csproj">
+      <Project>{3cad094a-7cf0-4c73-aedf-f86eb7e08dff}</Project>
+      <Name>RDotNet.ClrProxy</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

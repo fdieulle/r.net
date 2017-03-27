@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
-using System.Text;
 using NUnit.Framework;
 using RDotNet.ClrProxy.R6;
 
@@ -14,30 +12,7 @@ namespace RDotNet.ClrProxyTests.R6
         [Test]
         public void TestGeneratePropertiesOnly()
         {
-            var types = new HashSet<Type>();
-            var sb = new StringBuilder();
-            sb.AppendLine("library(R6)");
-            sb.AppendLine("library(r.net)");
-            sb.AppendLine();
-
-            sb.GenerateR6Class(typeof(PropertiesOnly), null, types);
-            sb.AppendLine();
-            sb.GenerateR6Class(typeof(FullClass), null, types);
-            sb.AppendLine();
-
-            File.WriteAllText("R6.R", sb.ToString());
-
-            sb.Clear();
-            types.Clear();
-
-            sb.GenerateR6Class(typeof(Sample1), null, types);
-
-            File.WriteAllText("R6-Generated.R", sb.ToString());
-
-
-            //var engine = REngine.GetInstance();
-            ////engine.Evaluate("source('../../R6/TestGeneratedClass.R')");
-            //engine.Evaluate("as.numeric(0)");
+            R6Generator.GenerateR6Classes(new [] { "RDotNet.ClrProxyTests.R6.Sample1" }, "R6-Generated.R");
         }
 
         [Test]
