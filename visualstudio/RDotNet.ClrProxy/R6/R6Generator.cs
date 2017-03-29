@@ -65,12 +65,10 @@ namespace RDotNet.ClrProxy.R6
             if (visited.Contains(type)) return;
             visited.Add(type);
 
-            var scope = baseType == null
-                ? BindingFlags.Public | BindingFlags.Instance
-                : BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly;
+            const BindingFlags scope = BindingFlags.Public | BindingFlags.Instance;
 
             var properties = type.GetProperties(scope).Where(p => p.IsBrowsable() && !p.IsSpecialName).ToArray();
-            var methods = type.GetMethods(scope).Where(p => !p.IsSpecialName && p.IsBrowsable()).ToArray();
+            var methods = type.GetMethods(scope).Where(p => !p.IsSpecialName && p.IsBrowsable() && p.DeclaringType != typeof(object)).ToArray();
             var memberUniqueNames = new Dictionary<MemberInfo, string>();
 
             #region Manage type dependencies
@@ -99,6 +97,7 @@ namespace RDotNet.ClrProxy.R6
             }
             #endregion
 
+            sb.GenerateDocumentation(type, baseType, methods, properties, memberUniqueNames);
             sb.AppendFormat("{0} <- R6Class(\"{0}\",\r\n", type.Name);
             sb.AppendFormat("\tinherit = {0},\r\n", baseType == null ? "NetObject" : baseType.Name);
 
@@ -338,22 +337,6 @@ namespace RDotNet.ClrProxy.R6
             return name;
         }
 
-        private static string GetDescription(this MemberInfo member)
-        {
-            var attribute = member.GetCustomAttribute<DescriptionAttribute>();
-            return attribute == null || string.IsNullOrEmpty(attribute.Description)
-                       ? member.Name
-                       : attribute.Description;
-        }
-
-        private static string GetName(this MemberInfo member)
-        {
-            var attribute = member.GetCustomAttribute<DisplayNameAttribute>();
-            return attribute == null || string.IsNullOrEmpty(attribute.DisplayName)
-                       ? member.Name
-                       : attribute.DisplayName;
-        }
-
         private static bool InheritsFrom(this Type type, Type baseType)
         {
             if (type == null || baseType == null) return false;
@@ -369,5 +352,185 @@ namespace RDotNet.ClrProxy.R6
 
             return false;
         }
+
+        #region Generate documentation
+
+        public static void GenerateDocumentation(this StringBuilder sb, Type type, Type baseType, MethodInfo[] methods, PropertyInfo[] properties, Dictionary<MemberInfo, string> unique)
+        {
+            sb.AppendLine("#' @title");
+            sb.AppendFormat("#' {0}\r\n", type.GetName());
+            sb.AppendLine("#' ");
+
+            sb.AppendLine("#' @description");
+            sb.AppendFormat("#' {0}\r\n", type.GetDescription());
+            
+            if (properties.Length > 0)
+            {
+                sb.AppendLine("#' ");
+                sb.AppendLine("#' @section Properties:");
+                sb.AppendLine("#' ");
+                foreach (var pair in properties.GroupByCategory())
+                {
+                    if (pair.Key != null)
+                    {
+                        sb.Append(@"#' \subsection{");
+                        sb.Append(pair.Key);
+                        sb.AppendLine("}{");
+                    }
+
+                    foreach (var property in pair.Value)
+                    {
+                        sb.AppendFormat("#' * `{0}` (", unique[property]);
+                        sb.AppendResultType(property.PropertyType);
+                        sb.AppendFormat("): {0}", property.GetDescription());
+
+                        if (property.DeclaringType != null && property.DeclaringType != type &&
+                            property.DeclaringType != typeof (object))
+                        {
+                            sb.Append(@". Inherited from \code{\link{");
+                            sb.Append(property.DeclaringType.Name);
+                            sb.Append(@"}}");
+                        }
+                        sb.AppendLine();
+                    }
+
+                    if (pair.Key != null)
+                    {
+                        sb.AppendLine("#' }");
+                        sb.AppendLine("#' ");
+                    }
+                }
+            }
+
+            if (methods.Length > 0)
+            {
+                sb.AppendLine("#' ");
+                sb.AppendLine("#' @section Methods:");
+                sb.AppendLine("#' ");
+                foreach (var pair in methods.GroupByCategory())
+                {
+                    if (pair.Key != null)
+                    {
+                        sb.Append(@"#' \subsection{");
+                        sb.Append(pair.Key);
+                        sb.AppendLine("}{");
+                    }
+
+                    foreach (var method in pair.Value)
+                    {
+                        sb.AppendFormat("#' * `{0}(", unique[method]);
+                        var parameters = method.GetParameters();
+                        for (var i = 0; i < parameters.Length; i++)
+                        {
+                            if (i > 0) sb.Append(", ");
+                            sb.Append(parameters[i].Name);
+                        }
+                        sb.Append("): ");
+                        sb.AppendResultType(method.ReturnType);
+                        sb.AppendFormat("`: {0}", method.GetDescription());
+
+                        if (method.DeclaringType != null && method.DeclaringType != type)
+                        {
+                            sb.Append(@". Inherited from ");
+                            sb.AppendLink(method.DeclaringType.Name);
+                        }
+                        sb.AppendLine();
+                    }
+
+                    if (pair.Key != null)
+                    {
+                        sb.AppendLine("#' }");
+                        sb.AppendLine("#' ");
+                    }
+                }
+            }
+
+            sb.AppendLine("#' ");
+            if(baseType != null)
+                sb.AppendFormat("#' @family {0}\r\n", baseType.Name);
+            sb.AppendFormat("#' @family {0}\r\n", type.Name);
+
+            sb.AppendLine("#' @md");
+            sb.AppendLine("#' @export");
+        }
+
+        private static string GetName(this MemberInfo member)
+        {
+            var attribute = member.GetCustomAttribute<DisplayNameAttribute>();
+            return attribute == null || string.IsNullOrEmpty(attribute.DisplayName)
+                       ? member.Name
+                       : attribute.DisplayName;
+        }
+
+        private static string GetDescription(this MemberInfo member)
+        {
+            var attribute = member.GetCustomAttribute<DescriptionAttribute>();
+            return attribute == null || string.IsNullOrEmpty(attribute.Description)
+                       ? member.Name
+                       : attribute.Description;
+        }
+
+        private static IEnumerable<KeyValuePair<string, List<T>>> GroupByCategory<T>(this T[] members) where T : MemberInfo
+        {
+            const string misc = "Misc";
+            var result = new Dictionary<string, List<T>>
+            {
+                { misc, new List<T>() }
+            };
+            
+            foreach (var member in members)
+            {
+                var attribute = member.GetCustomAttribute<CategoryAttribute>();
+                var category = attribute == null || string.IsNullOrEmpty(attribute.Category) ? misc : attribute.Category;
+                List<T> list;
+                if(!result.TryGetValue(category, out list))
+                    result.Add(category, list = new List<T>());
+                list.Add(member);
+            }
+
+            if (result.Count == 1)
+                yield return new KeyValuePair<string, List<T>>(null, result[misc]);
+            else
+            {
+                foreach (var pair in result.Where(p => p.Value.Count > 0))
+                    yield return pair;
+            }
+        }
+
+        private static void AppendLink(this StringBuilder sb, string value)
+        {
+            sb.Append(@"\code{\link{");
+            sb.Append(value);
+            sb.Append("}}");
+        }
+
+        private static void AppendResultType(this StringBuilder sb, Type type)
+        {
+            var isArray = type.IsArray;
+            var isList = type.IsGenericType && type.InheritsFrom(typeof(IEnumerable));
+
+            if (isList)
+                sb.Append("list(");
+
+            Type link;
+            if (type.TryGetTypeToGenerate(out link))
+            {
+                sb.AppendLink(link.Name);
+                if (isArray)
+                    sb.Append("[]");
+            }
+            else
+            {
+                link = type;
+                if (isList)
+                    link = type.GetGenericArguments()[0];
+
+                sb.AppendFormat("`{0}`", link.Name);
+            }
+
+            if (isList) sb.Append(")");
+        }
+
+        #endregion
     }
 }

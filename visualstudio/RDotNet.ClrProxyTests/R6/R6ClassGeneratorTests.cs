@@ -12,7 +12,7 @@ namespace RDotNet.ClrProxyTests.R6
         [Test]
         public void TestGeneratePropertiesOnly()
         {
-            R6Generator.GenerateR6Classes(new [] { "RDotNet.ClrProxyTests.R6.Sample1" }, "R6-Generated.R");
+            R6Generator.GenerateR6Classes(new [] { "RDotNet.ClrProxyTests.R6.Sample1" }, "testDoc/R/R6-Generated.R");
         }
 
         [Test]
@@ -38,6 +38,9 @@ namespace RDotNet.ClrProxyTests.R6
         public double GetOnly { get { return 1.23; } }
 
         public double SetOnly { private get; set; }
+
+        public string[] ArrayOfString { get; set; }
+        public List<string> ListOfString { get; set; }
     }
 
     public class FullClass
@@ -105,6 +108,11 @@ namespace RDotNet.ClrProxyTests.R6
         public FullClass MethodReturnsFullClass(string name)
         {
             return new FullClass { Name = name };
+        }
+
+        public override string ToString()
+        {
+            return "An instance of Sample1";
         }
     }
 }
