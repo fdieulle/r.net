@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 
 namespace RDotNet.AssemblyTest
 {
@@ -179,8 +180,23 @@ namespace RDotNet.AssemblyTest
 
         public static string[] CallWithCharacterVector(string[] value)
         {
-            Console.WriteLine("{0} arg: {1}", MethodBase.GetCurrentMethod(), string.Join(",", value));
+            if(value == null) Console.WriteLine("Is null !");
+            //Console.WriteLine("{0} arg: {1}", MethodBase.GetCurrentMethod(), string.Join(",", value));
             return value;
+        }
+
+        public static string[] CreateCharacterVector(int length)
+        {
+            Console.WriteLine("{0}", MethodBase.GetCurrentMethod());
+            var array = new string[length];
+            for (var i = 0; i < length; i++)
+            {
+                array[i] = Guid.NewGuid().ToString();
+                Thread.Sleep(0);
+                array[i] = string.Format("TestSharing.NetStrings_{0}", i);
+            }
+            GC.Collect();
+            return array;
         }
 
         public static string[,] CallWithCharacterMatrix(string[,] value)
@@ -598,5 +614,11 @@ namespace RDotNet.AssemblyTest
         }
 
         #endregion
+
+        public static void ThrowException(string message)
+        {
+            //Thread.Sleep(10000);
+           throw new MissingMethodException(String.Format("Could not find method {0} on object", message));
+        }
     }
 }
