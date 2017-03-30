@@ -23,7 +23,7 @@ namespace RDotNet.AssemblyTest.Model
 
         public Sample2 MethodReturnSample2(string name)
         {
-            return new Sample2(){ Name = name };
+            return new Sample2 { Name = name };
         }
 
         public List<Sample2> MethodReturnListOfSample2(Sample2[] array)
@@ -57,6 +57,7 @@ namespace RDotNet.AssemblyTest.Model
         public int Id { get; set; }
 
         [Category("Parameters")]
+        [Description("This is the given price")]
         public double Price { get; set; }
 
         [Category("Parameters")]

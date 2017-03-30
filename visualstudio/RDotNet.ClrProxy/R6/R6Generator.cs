@@ -425,9 +425,9 @@ namespace RDotNet.ClrProxy.R6
                             if (i > 0) sb.Append(", ");
                             sb.Append(parameters[i].Name);
                         }
-                        sb.Append("): ");
+                        sb.Append(")`:");
                         sb.AppendResultType(method.ReturnType);
-                        sb.AppendFormat("`: {0}", method.GetDescription());
+                        sb.AppendFormat(": {0}", method.GetDescription());
 
                         if (method.DeclaringType != null && method.DeclaringType != type)
                         {

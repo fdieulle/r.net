@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using NUnit.Framework;
+using RDotNet.AssemblyTest.Model;
 using RDotNet.ClrProxy.R6;
 
 namespace RDotNet.ClrProxyTests.R6
@@ -12,7 +14,15 @@ namespace RDotNet.ClrProxyTests.R6
         [Test]
         public void TestGeneratePropertiesOnly()
         {
-            R6Generator.GenerateR6Classes(new [] { "RDotNet.ClrProxyTests.R6.Sample1" }, "testDoc/R/R6-Generated.R");
+            const string folder = @"testDoc/R";
+            if (!Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
+
+            R6Generator.GenerateR6Classes(new[]
+                {
+                    typeof(ClassWithDependencies).FullName, 
+                    typeof(IData).FullName
+                }, Path.Combine(folder, "R6-Generated.R"), withInheritedTypes:true);
         }
 
         [Test]
@@ -76,7 +86,7 @@ namespace RDotNet.ClrProxyTests.R6
         }
     }
 
-    public class Sample1
+    public class ClassWithDependencies
     {
         public PropertiesOnly PropertiesOnly { get; set; }
 
