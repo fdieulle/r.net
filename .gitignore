@@ -95,3 +95,4 @@ UpgradeLog*.XML
 man/
 NAMESPACE
 .Rhistory
+.Rproj.user

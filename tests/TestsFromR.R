@@ -1,4 +1,4 @@
-pckPath <- "E:/Wokspace/Svn/R/R.Net"
+pckPath <- "E:/Workspace/GitHub/r.net"
 
 source(file.path(pckPath, 'R/zzz.R'))
 source(file.path(pckPath, 'R/net-exported.R'))
