@@ -1,0 +1,2 @@
+*.R linguist-language=R
+*.cs linguist-language=C#
