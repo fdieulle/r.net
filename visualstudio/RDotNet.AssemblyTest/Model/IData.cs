@@ -8,6 +8,7 @@ namespace RDotNet.AssemblyTest.Model
 {
     public interface IData
     {
+        string Name { get; set; }
     }
 
     public class Sample1 : IData
@@ -18,8 +19,19 @@ namespace RDotNet.AssemblyTest.Model
 
         public List<Sample2> ListOfSample2 { get; set; }
 
+        public IData DataAsInterface { get; set; }
+
         public void MethodNoReturn() { }
         public void MethofNoReturn(string arg1) { }
+        public string MethodReturnArgument(string argument)
+        {
+            return argument;
+        }
+        [Browsable(false)]
+        public void InvisibleMethod()
+        {
+
+        }
 
         public Sample2 MethodReturnSample2(string name)
         {
@@ -35,17 +47,17 @@ namespace RDotNet.AssemblyTest.Model
         {
             return list.ToArray();
         }
-
-        public string MethodReturnArgument(string argument)
+        
+        public IData MethoReturnInterface()
         {
-            return argument;
+            return new Sample3("Sample3");
         }
 
-        [Browsable(false)]
-        public void InvisibleMethod()
-        {
-            
-        }
+        #region Implementation of IData
+
+        public string Name { get; set; }
+
+        #endregion
     }
 
     public class Sample2
@@ -78,9 +90,11 @@ namespace RDotNet.AssemblyTest.Model
 
     public class Sample3 : IData
     {
-        private readonly string name;
+        private string name;
 
-        public string Name { get { return name; } }
+        public string Name { get { return name; }
+            set { name = value; }
+        }
 
         public Sample3(string name)
         {

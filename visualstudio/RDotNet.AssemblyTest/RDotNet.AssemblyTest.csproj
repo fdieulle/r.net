@@ -43,6 +43,7 @@
     <Compile Include="DefaultCtorData.cs" />
     <Compile Include="EnumSample.cs" />
     <Compile Include="HierarchicalData.cs" />
+    <Compile Include="Model\ClassWithDependencies.cs" />
     <Compile Include="Model\IData.cs" />
     <Compile Include="StaticClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
