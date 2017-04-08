@@ -16,12 +16,11 @@ namespace RDotNet.ClrProxy.R6
         {
             if (typeNames == null || file == null) return;
 
+            var sb = new StringBuilder();
             foreach (var typeName in typeNames)
             {
                 var type = ReflectionProxy.GetType(typeName);
                 if (type == null) continue;
-                
-                var sb = new StringBuilder();
 
                 var visited = new HashSet<Type>();
                 if (withInheritedTypes)
@@ -43,10 +42,10 @@ namespace RDotNet.ClrProxy.R6
                     }
                 }
                 else sb.GenerateR6Class(type, null, visited);
-
-                if (appendFile) File.AppendAllText(file, sb.ToString());
-                else File.WriteAllText(file, sb.ToString());
             }
+
+            if (appendFile) File.AppendAllText(file, sb.ToString());
+            else File.WriteAllText(file, sb.ToString());
         }
 
         private static void GetBaseTypes(this Stack<Type> types, Type fromType, Type toType)
@@ -57,6 +56,11 @@ namespace RDotNet.ClrProxy.R6
                 types.Push(type);
                 if (type == toType) return;
                 type = type.BaseType;
+                if (type == typeof(object) && toType.IsInterface)
+                {
+                    types.Push(toType);
+                    return;
+                }
             }
         }
 
@@ -72,11 +76,16 @@ namespace RDotNet.ClrProxy.R6
             var memberUniqueNames = new Dictionary<MemberInfo, string>();
 
             #region Manage type dependencies
-            var names = new Dictionary<string, int> { { "get", 0 }, { "set", 0 }, { "call", 0 } }; // Put NetObject methods
+            var names = new Dictionary<string, int> // Put NetObject methods
+                {
+                    { "get", 0 }, { "set", 0 }, { "call", 0 },
+                    { "unwrap", 0 }, { "as", 0 }, { "getType", 0 },
+                    { "print", 0 }, { "initialize", 0 }, { "clone", 0 }
+                }; 
             foreach (var property in properties)
             {
                 Type link;
-                if(property.PropertyType.TryGetTypeToGenerate(out link))
+                if (property.PropertyType.TryGetTypeToGenerate(out link))
                     sb.GenerateR6Class(link, null, visited);
 
                 memberUniqueNames[property] = names.GetUniqueName(property.Name);
@@ -86,7 +95,7 @@ namespace RDotNet.ClrProxy.R6
                 Type link;
                 if (method.ReturnType.TryGetTypeToGenerate(out link))
                     sb.GenerateR6Class(link, null, visited);
-                
+
                 foreach (var parameter in method.GetParameters())
                 {
                     if (parameter.ParameterType.TryGetTypeToGenerate(out link))
@@ -155,7 +164,7 @@ namespace RDotNet.ClrProxy.R6
                 sb.AppendLine("\t\t\t}");
             }
             else sb.AppendLine();
-                
+
             sb.Append("\t\t}");
         }
 
@@ -228,13 +237,13 @@ namespace RDotNet.ClrProxy.R6
             var parameters = method.GetParameters();
             for (var i = 0; i < parameters.Length; i++)
             {
-                if(i != 0) sb.Append(", ");
+                if (i != 0) sb.Append(", ");
                 sb.Append(parameters[i].Name);
             }
             sb.AppendLine(") {");
 
             // Generate function body
-            if (method.ReturnType == typeof (void))
+            if (method.ReturnType == typeof(void))
             {
                 sb.AppendFormat("\t\t\tinvisible(self$call(\"{0}\"", method.Name);
                 foreach (var parameter in parameters)
@@ -250,7 +259,7 @@ namespace RDotNet.ClrProxy.R6
 
                 sb.WrapToNetObject(method.ReturnType, "\t\t\t");
             }
-            
+
             sb.Append("\t\t}");
         }
 
@@ -265,12 +274,12 @@ namespace RDotNet.ClrProxy.R6
 
         private static ParameterInfo[] GetCtorParameters(this Type type)
         {
-            if(type == null) return new ParameterInfo[0];
+            if (type == null) return new ParameterInfo[0];
 
             var ctors = type.GetConstructors();
 
-            var candidate = (ctors.FirstOrDefault(p => p.GetCustomAttribute<R6CtorAttribute>(false) != null) 
-                ?? ctors.FirstOrDefault(p => p.GetParameters().Length == 0)) 
+            var candidate = (ctors.FirstOrDefault(p => p.GetCustomAttribute<R6CtorAttribute>(false) != null)
+                ?? ctors.FirstOrDefault(p => p.GetParameters().Length == 0))
                 ?? ctors.FirstOrDefault();
 
             return candidate != null ? candidate.GetParameters() : new ParameterInfo[0];
@@ -303,14 +312,14 @@ namespace RDotNet.ClrProxy.R6
             }
 
             // Manage IEnumerable<>
-            if (type.GetInterfaces().Any(p => p.IsGenericType && p.GetGenericTypeDefinition() == typeof (IEnumerable<>)))
+            if (type.GetInterfaces().Any(p => p.IsGenericType && p.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
             {
                 t = type.GetGenericArguments()[0];
                 return t.ShouldGenerateR6();
             }
 
             return !type.IsGenericType // Not yet supported
-                && !type.InheritsFrom(typeof (IEnumerable));
+                && !type.InheritsFrom(typeof(IEnumerable));
         }
 
         private static bool IsBrowsable(this MemberInfo member)
@@ -363,7 +372,7 @@ namespace RDotNet.ClrProxy.R6
 
             sb.AppendLine("#' @description");
             sb.AppendFormat("#' {0}\r\n", type.GetDescription());
-            
+
             if (properties.Length > 0)
             {
                 sb.AppendLine("#' ");
@@ -385,7 +394,7 @@ namespace RDotNet.ClrProxy.R6
                         sb.AppendFormat("): {0}", property.GetDescription());
 
                         if (property.DeclaringType != null && property.DeclaringType != type &&
-                            property.DeclaringType != typeof (object))
+                            property.DeclaringType != typeof(object))
                         {
                             sb.Append(@". Inherited from \code{\link{");
                             sb.Append(property.DeclaringType.Name);
@@ -446,7 +455,7 @@ namespace RDotNet.ClrProxy.R6
             }
 
             sb.AppendLine("#' ");
-            if(baseType != null)
+            if (baseType != null)
                 sb.AppendFormat("#' @family {0}\r\n", baseType.Name);
             sb.AppendFormat("#' @family {0}\r\n", type.Name);
 
@@ -477,13 +486,13 @@ namespace RDotNet.ClrProxy.R6
             {
                 { misc, new List<T>() }
             };
-            
+
             foreach (var member in members)
             {
                 var attribute = member.GetCustomAttribute<CategoryAttribute>();
                 var category = attribute == null || string.IsNullOrEmpty(attribute.Category) ? misc : attribute.Category;
                 List<T> list;
-                if(!result.TryGetValue(category, out list))
+                if (!result.TryGetValue(category, out list))
                     result.Add(category, list = new List<T>());
                 list.Add(member);
             }
