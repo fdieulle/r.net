@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace RDotNet.ClrProxy.Converters.RDotNet
 {
     public class SexpCharacterVectorConverter : IConverter
     {
-        private static readonly Type[] singleValue = new[] { typeof(string), typeof(string[]), typeof(Array) };
-        private static readonly Type[] multiValues = new[] { typeof(string[]), typeof(Array) };
-
+        private static readonly Type[] multiValues = new[] { typeof(string[]), typeof(List<string>), typeof(IList<string>), typeof(IEnumerable<string>), typeof(Array), typeof(IEnumerable) };
+        private static readonly Type[] singleValue = new[] {typeof (string)}.Concat(multiValues).ToArray();
+        
         private readonly Vector<string> sexpVector;
         private readonly Type[] types;
 
@@ -29,8 +32,10 @@ namespace RDotNet.ClrProxy.Converters.RDotNet
         {
             if (type == typeof(string))
                 return sexpVector.ToArray()[0];
-            if (type == typeof(string[]) || type == typeof(Array))
+            if (type == typeof(string[]) || type == typeof(Array) || type == typeof(IEnumerable<string>) || type == typeof(IEnumerable))
                 return sexpVector.ToArray();
+            if (type == typeof (List<string>) || type == typeof (IList<string>))
+                return sexpVector.ToArray().ToList();
             if (type.IsEnum)
                 return sexpVector.ToArray().ToEnum(type, true);
             if (type.IsEnumArray())

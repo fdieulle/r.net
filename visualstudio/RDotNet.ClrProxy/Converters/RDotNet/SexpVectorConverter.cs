@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace RDotNet.ClrProxy.Converters.RDotNet
 {
     public class SexpVectorConverter<T> : IConverter
     {
-        private static readonly Type[] singleValue = new[] { typeof(T), typeof(T[]), typeof(Array) };
-        private static readonly Type[] multiValues = new[] { typeof(T[]), typeof(Array) };
+        private static readonly Type[] multiValues = new[] { typeof(T[]), typeof(List<T>), typeof(IList<T>), typeof(IEnumerable<T>), typeof(Array), typeof(IEnumerable) };
+        private static readonly Type[] singleValue = new[] { typeof(T) }.Concat(multiValues).ToArray();
 
         private readonly Vector<T> sexpVector;
         private readonly Type[] types;

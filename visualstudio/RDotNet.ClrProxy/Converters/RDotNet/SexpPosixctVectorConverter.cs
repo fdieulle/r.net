@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using RDotNet.ClrProxy.Resources;
 
 namespace RDotNet.ClrProxy.Converters.RDotNet
 {
     public class SexpPosixctVectorConverter : IConverter
     {
-        private static readonly Type[] singleValue = new[] { typeof(DateTime), typeof(DateTime[]), typeof(Array) };
-        private static readonly Type[] multiValues = new[] { typeof(DateTime[]), typeof(Array) };
+        private static readonly Type[] multiValues = new[] { typeof(DateTime[]), typeof(List<DateTime>), typeof(IList<DateTime>), typeof(IEnumerable<DateTime>), typeof(Array), typeof(IEnumerable) };
+        private static readonly Type[] singleValue = new[] {typeof (DateTime)}.Concat(multiValues).ToArray();
 
         private readonly Vector<double> sexpVector;
         private readonly Type[] types;
