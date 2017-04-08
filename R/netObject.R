@@ -16,6 +16,7 @@
 NetObject <- R6Class("NetObject",
   private = list(
     ptr = NULL,
+		type = NULL,
     getPtr = function(...) {
       if(!is.null(private$ptr)) {
         return(TRUE)
@@ -64,12 +65,45 @@ NetObject <- R6Class("NetObject",
     unwrap = function(value) {
       if(inherits(value, "NetObject")) {
         return(value$Ptr)
-      } else if(is.list(value)) {
+      } else if(is.list(value) & length(value) > 0) {
         for(i in 1:length(value)) {
           value[[i]] <- self$unwrap(value[[i]])
         }
       }
       return(value)
-    }
+    },
+		as = function(className) {
+			return(do.call(get(className)$new, list(ptr = private$ptr))) 
+		},
+		getType = function() {
+			type <- self$call("GetType")
+			return(NetType$new(netGet(type, "Name"), netGet("Namespace")))
+		}
   )
+)
+
+NetType <- R6Class("NetType",
+	private = list(
+		name = NULL,
+		namespace = NULL,
+		fullName = NULL
+	),
+	active = list(
+    Name = function(value) {
+      if(missing(value)) return(name)
+    },
+		Namespace = function(value) {
+      if(missing(value)) return(namespace)
+    },
+		FullName = function(value) {
+      if(missing(value)) return(fullName)
+    }
+  ),
+	public = list(
+		initialize = function(namespace, name) {
+			private$namespace = namespace
+			private$name = name
+			private$fullName = paste(namespace, name, sep = ".")
+		}
+	)
 )
