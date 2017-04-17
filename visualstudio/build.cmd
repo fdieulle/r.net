@@ -20,7 +20,13 @@ set MSB_OPTIONS=/p:VisualStudioVersion=11.0
 
 set PROXY_CSPROJ=%CURRENT_DIR%\RDotNet.ClrProxy\RDotNet.ClrProxy.csproj
 set RHOSTCLR_CSPROJ=%CURRENT_DIR%\RDotNet.RHostClr\RDotNet.RHostClr.vcxproj
+set TEST_CSPROJ=%CURRENT_DIR%\RDotNet.AssemblyTest\RDotNet.AssemblyTest.csproj
 
 %MSBuildToolsPath% %PROXY_CSPROJ% /t:%MODE% /p:Configuration=%BUILD_CONFIGURATION% %MSB_OPTIONS%
 %MSBuildToolsPath% %RHOSTCLR_CSPROJ% /t:%MODE% /p:Configuration=%BUILD_CONFIGURATION% /p:Platform="x64" %MSB_OPTIONS%
 %MSBuildToolsPath% %RHOSTCLR_CSPROJ% /t:%MODE% /p:Configuration=%BUILD_CONFIGURATION% /p:Platform="Win32" %MSB_OPTIONS%
+
+REM build project test
+%MSBuildToolsPath% %TEST_CSPROJ% /t:%MODE% /p:Configuration=%BUILD_CONFIGURATION% %MSB_OPTIONS%
+echo "Copying test file to %CURRENT_DIR%\..\inst\tests"
+XCopy %CURRENT_DIR%\RDotNet.AssemblyTest\bin\Release\RDotNet.AssemblyTest.dll %CURRENT_DIR%..\inst\tests /Y

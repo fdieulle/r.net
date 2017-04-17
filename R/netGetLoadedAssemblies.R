@@ -1,11 +1,15 @@
-#' Gets all loaded assemblies in the Common Language Runtime. 
-#'
-#' Gets all loaded assemblies in the current AppDomain. 
+#' @title 
+#' Gets all loaded assemblies
+#' 
+#' @description
+#' Gets all loaded assemblies name
 #'
 #' @export
 #' @examples
-#' library(r.net)
-#' netGetLoadedAssemblies()
+#' \dontrun{
+#' 	library(r.net)
+#' 	netGetLoadedAssemblies()
+#' }
 netGetLoadedAssemblies <- function() {
 	funcGetName <- function(assembly) { return (netGet(netCall(assembly, "GetName"), "Name")) }
 	sapply(netCall(netGetStatic("System.AppDomain", "CurrentDomain"), "GetAssemblies"), funcGetName)

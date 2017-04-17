@@ -1,13 +1,19 @@
-#' Loads an assembly in the Common Language Runtime. 
+#' @title
+#' Loads an assembly.
 #'
-#' Loads an assembly. 
+#' @description
+#' Loads an assembly in the Clr (Common Language Runtime). 
 #'
-#' @param name a character vector of length one. It can be the full file name of the assembly to load, or a fully qualified assembly name, or as a last resort a partial name.
-#' @seealso \code{\link{.C}} which this function wraps
+#' @param filePath Assembly file. It can be the full file path of the assembly, or a qualified assembly name.
+#'
 #' @export
 #' @examples
 #' \dontrun{
 #' library(r.net)
+#'
+#' pckPath <- path.package("r.net")
+#' f <- file.path(pckPath, "tests", "RDotNet.AssemblyTest.dll")
+#' netLoadAssembly(f)
 #' }
 netLoadAssembly <- function(filePath) {
   .C("rLoadAssembly", filePath, PACKAGE = rNetPackageName)

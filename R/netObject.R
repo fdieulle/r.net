@@ -2,8 +2,22 @@
 #' NetObject class
 #' 
 #' @description
-#' NetObject class to wrap .Net external pointer 
+#' NetObject class to wrap a .Net external pointer 
 #'
+#' @section Properties:
+#'
+#' * `Ptr`: External pointer of the wrapped .Net object
+#'
+#' @section Methods:
+#'
+#' * `get(propertyName)`: Gets a property value
+#' * `set(propertyName, value)`: Sets a property value
+#' * `call(methodName, ...)`: Call a method
+#' * `unwrap(value)`: Unwrap any NetObject or collection of NetObjects to external pointers
+#' * `as(className)`: Cast the current R6 class to another by keeping the same .Net pointer
+#' * `getType()`: Gets `NetType` description of wrapped .Net object
+#'
+#' @md
 #' @export
 #' @examples
 #' \dontrun{
@@ -82,6 +96,28 @@ NetObject <- R6Class("NetObject",
   )
 )
 
+#' @title 
+#' NetType class
+#' 
+#' @description
+#' NetType provide the name and namespace of a .Net type
+#'
+#' @section Properties:
+#'
+#' * `Name`: .Net type
+#' * `Namespace`: .Net type namespace
+#' * `FullName`: Full .Net type
+#'
+#' @md
+#' @export
+#' @examples
+#' \dontrun{
+#' library(r.net)
+#' f <- file.path(pckPath, "src/RDotNet.AssemblyTest/bin/Debug", "RDotNet.AssemblyTest.dll")
+#' netLoadAssembly(f)
+#' x <- netNew("RDotNet.AssemblyTest.OneCtorData", 21L)
+#' netCall(x, "ToString")
+#' }
 NetType <- R6Class("NetType",
 	private = list(
 		name = NULL,

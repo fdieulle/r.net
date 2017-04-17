@@ -1,17 +1,30 @@
-#' Gets property value from a .Net object
+#' @title 
+#' Gets a property value
+#' 
+#' @description
+#' Gets property value from a .Net object pointer
 #'
-#' @param x an external pointer on a .Net object
-#' @param propertyName the property name of the object
-#' @return Property value which can be an external pointer on .Net object or a native R object if the conversion is supported.
+#' @param x External pointer on a .Net object
+#' @param propertyName Property name to get value
+#' @return Returns a converted .Net instance if a converter is defined, an external pointer otherwise.
+#' 
+#' @details
+#' Allows you to get a property value from an external pointer on .Net object. 
+#' The result will be converted if the type mapping is defined. All native C# types are mapped to R types
+#' but you can define custom converters in C# for that see `RDotNetDataConverter` class.
+#' 
 #' @export
 #' @examples
 #' \dontrun{
 #' library(r.net)
-#' f <- file.path(pckPath, "src/RDotNet.AssemblyTest/bin/Debug", "RDotNet.AssemblyTest.dll")
+#'
+#' pckPath <- path.package("r.net")
+#' f <- file.path(pckPath, "tests", "RDotNet.AssemblyTest.dll")
 #' netLoadAssembly(f)
-#' type <- "RDotNet.AssemblyTest.DefaultCtorData";
-#' testObj <- netNew(type)
-#' netGet(testObj, "Name")
+#' 
+#' obj <- netNew("RDotNet.AssemblyTest.DefaultCtorData")
+#' netSet(obj, "Name", "Test")
+#' netGet(obj, "Name")
 #' }
 netGet <- function(x, propertyName) {
   result <- .External("rGet", x, propertyName, PACKAGE = rNetPackageName)
