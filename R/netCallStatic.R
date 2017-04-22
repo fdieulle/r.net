@@ -11,7 +11,7 @@
 #'
 #'@details
 #' Call a static method for a given .Net type name.
-#' Ellipses has to keep the .net arguments method order, the named arguments are not yet supported.
+#' Ellipses has to keep the .net arguments method order, the named arguments are not supported yet.
 #' If there is conflicts with a method name (many definition in .Net), the best matched one will be chose.
 #' A score is computed from your arguments orders and types. We consider as higher priority single value compare to collection of values.
 #'
