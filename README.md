@@ -94,6 +94,115 @@ dataConverter <- netGetStatic("RDotNet.ClrProxy.ClrProxy", "DataConverter")
 netSetStatic("RDotNet.ClrProxy.ClrProxy", "DataConverter", dataConverter)
 ```
 ### How to interact with .Net objects
+The package allows you to create and manage .Net objects from R. A .Net object is stored in an R extenal pointer which reprensents the address in the CLR. A R6 class namde NetObject included in the package allows you to wrap each external pointers to manipulate them easily. We will see how to use it later.
+
+To create and manage .Net objects from R you can use the following R functions:
+* `netNew`: Create an object from its .Net type name
+* `netCall`: Call a member method for a given external pointer of a .Net object.
+* `netGet`: Gets property value from a given external pointer of .Net object.
+* `netSet`: Gets property value from a given external pointer of .Net object.
+
+#### netNew
+Instanciate a .Net object from its type name and returns an external pointer.
+
+- `typeName`: Full .Net type name
+- `...`: Constructor arguments
+
+The `typeName` should respect the full type name convention: `Namespace.TypeName`.
+Ellipses `...` has to keep the .net constructor arguments order, the named arguments are not supported yet.
+If there is many constructors defined for the given .Net type, a score selection is computed from your arguments orders and types to choose the best one. We consider as a higher priority single value compare to collection of values.
+
+```R
+library(r.net)
+
+pckPath <- path.package("r.net")
+f <- file.path(pckPath, "tests", "RDotNet.AssemblyTest.dll")
+netLoadAssembly(f)
+
+x <- netNew("RDotNet.AssemblyTest.OneCtorData", 21L)
+netCall(x, "ToString")
+```
+
+#### netCall
+Call a method member for a given external pointer of a .Net object.
+
+- `x`: External pointer of a .Net object
+- `methodName`: Method name to call
+- `...`: Mathod arguments
+
+Call a method member for a given external pointer of a .Net object.
+Ellipses has to keep the .net arguments method order, the named arguments are not yet supported.
+If there is conflicts with a method name (many definition in .Net), the best matched one will be chose.
+A score is computed from your arguments orders and types. We consider as higher priority single value compare to collection of values.
+The function returns a converted .Net instance if a converter is defined, an external pointer otherwise.
+
+```R
+library(r.net)
+
+pckPath <- path.package("r.net")
+f <- file.path(pckPath, "tests", "RDotNet.AssemblyTest.dll")
+netLoadAssembly(f)
+
+x <- netNew("RDotNet.AssemblyTest.OneCtorData", 21L)
+netCall(x, "ToString")
+```
+
+#### netGet / netSet
+Gets or sets property value from an external pointer of .Net object.
+
+- `x`: External pointer of a .Net object
+- `propertyName`: Property name to get or set value.
+- `value`: value to set
+
+If the property value isn't a native C# type or a mapped conversion type you have to use an external pointer on .Net object. You can define custom converters in C# for that see `RDotNetDataConverter` class.
+
+```R
+library(r.net)
+
+pckPath <- path.package("r.net")
+f <- file.path(pckPath, "tests", "RDotNet.AssemblyTest.dll")
+netLoadAssembly(f)
+
+obj <- netNew("RDotNet.AssemblyTest.DefaultCtorData")
+netSet(obj, "Name", "Test")
+netGet(obj, "Name")
+```
+
+#### NetObject R6 class
+NetObject class allows you to wrap an external pointer of a .Net object and provides you some function helpers to easily manage your .Net objects, as described below.
+
+* `get`: Gets a property value
+* `set`: Sets a property value
+* `call`: Call a member method
+* `unwrap`: Unwrap any `NetObject`or list/vector of `NetObjects`to external pointer or list/vector of external pointers
+* `as`: Cast the current R6 class to another by keeping the same extenal pointer. Usefull if you have some a R6 classes heritage model where each of them inherite at least from `NetObject`.
+
+To wrap an external pointer you can initialize a `NetObject` by passing the external pointer as a parameter with a protected name as follow:
+
+```R
+x <- NetObject$new(ptr = myExternalPtr)
+```
+
+The `ptr` parameter name is case sensitif. Or you can initialize a `NetObject` and set the external pointer after through active elements as follow:
+
+```R
+x <- NetObject$new()
+x$Ptr <- MyExternalPointer
+```
+
+Initialize function supports also properties initialization if you choose the first way. You need to provide each property names you want to initialize with the value. You can't use this feature for the 2nd way because the external pointer isn't defined yet.
+
+```R
+library(r.net)
+
+pckPath <- path.package("r.net")
+f <- file.path(pckPath, "tests", "RDotNet.AssemblyTest.dll")
+netLoadAssembly(f)
+
+obj <- netNew("RDotNet.AssemblyTest.DefaultCtorData")
+x <- NetObject$new(ptr = obj, Name = "MyName")
+x$get("Name")
+```
 
 ### How to test and Debug
 

@@ -2,7 +2,7 @@
 #' Sets a property value
 #' 
 #' @description
-#' Sets property value from a .Net object pointer
+#' Sets property value from an external pointer of .Net object.
 #'
 #' @param x External pointer on a .Net object
 #' @param propertyName Property name to set value

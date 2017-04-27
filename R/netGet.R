@@ -2,7 +2,7 @@
 #' Gets a property value
 #' 
 #' @description
-#' Gets property value from a .Net object pointer
+#' Gets property value from an external pointer of .Net object.
 #'
 #' @param x External pointer on a .Net object
 #' @param propertyName Property name to get value

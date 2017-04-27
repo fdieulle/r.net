@@ -2,7 +2,7 @@
 #' Call a method
 #'
 #' @description
-#' Call a method member for a given .Net object pointer.
+#' Call a method member for a given external pointer of a .Net object.
 #'
 #' @param x External pointer on a .Net object
 #' @param methodName Method name to call
@@ -10,7 +10,7 @@
 #' @return Returns a converted .Net instance if a converter is defined, an external pointer otherwise.
 #' 
 #' @details
-#' Call a method member for a given .Net object instance which has to be an external pointer.
+#' Call a method member for a given external pointer of a .Net object.
 #' Ellipses has to keep the .net arguments method order, the named arguments are not yet supported.
 #' If there is conflicts with a method name (many definition in .Net), the best matched one will be chose.
 #' A score is computed from your arguments orders and types. We consider as higher priority single value compare to collection of values.
